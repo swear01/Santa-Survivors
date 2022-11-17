@@ -32,6 +32,10 @@ class Enemy(pygame.sprite.Sprite):
         self.pos += self.speed/fps*drct
         self.rect.center = self.pos
 
+    def avoid(self, knockback=2):
+        drct = self.pos - self.player.pos
+        drct /= norm(drct)
+        self.pos += drct*10*knockback
 
     @classmethod
     def spawn_enemy(cls, player, type='test', amt=1):

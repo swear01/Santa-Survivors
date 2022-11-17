@@ -1,4 +1,6 @@
 import pygame
+import pygame_gui
+from pygame_gui.core import ObjectID
 from pygame.locals import * # CONSTS
 import sys
 from bin.player import Player
@@ -13,17 +15,26 @@ pygame.init()
 clock = pygame.time.Clock()
 
 screen = pygame.display.set_mode((width, height))
+manager = pygame_gui.UIManager((width,height))
 
 player = Player(pos=(200,200))
 players = pygame.sprite.Group()
 players.add(player)
-player.weapons.append(Weapon('test', player=player, b_amt=7))
+#player.weapons.append(Weapon('test', player=player, b_amt=7))
 player.weapons.append(Weapon('autoaim', player=player, b_speed=125, b_hp=2))
+
+#gui init
+hp_bar = pygame_gui.elements.UIStatusBar(relative_rect=(5,5,630,20), manager=manager,
+    sprite=player, follow_sprite=False, anchors={'top':'top', 'left':'left', 'right':'right'},
+    percent_method=player.get_health_percent ,object_id=ObjectID('#hp_bar','@player_bar'))
+
 
 bullets, enemies = pygame.sprite.Group(), pygame.sprite.Group()
 enemy_timer = enemy_cooldown
 while True:
+    d_time = clock.tick(fps)/1000
     for event in pygame.event.get():
+        manager.process_events(event=event)
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
@@ -69,17 +80,28 @@ while True:
 
             if bullet.hp <= 0 : break
 
+    enemies_atked = pygame.sprite.spritecollide(player, enemies, dokill=False)
 
+    for enemy in enemies_atked:
+        player.hp -= enemy.atk
+        enemy.avoid()
+
+    # gui updates
+
+
+
+
+    manager.update(d_time)
 
     # draw zone
     screen.fill('#000000')
     bullets.draw(screen)
     enemies.draw(screen)
     players.draw(screen) #player is always at the top
+    manager.draw_ui(screen)
 
     pygame.display.flip()
 
-    clock.tick(fps)
 
-    print(clock.get_fps(), len(enemies), len(bullets))
+    #print(clock.get_fps(), len(enemies), len(bullets))
     

@@ -26,6 +26,8 @@ class Player(pygame.sprite.Sprite):
         self.hp = max_hp
         self.hp_r = hp_r
         self.speed = speed
+        self.xp = 0
+        self.level = 0
 
     def move(self, drct):
         global fps
@@ -42,4 +44,17 @@ class Player(pygame.sprite.Sprite):
             self.pos[0] += 1/fps*self.speed
 
     def update(self):
+        if self.xp > self.xp_to_next_level(self.level):
+            self.upgrade()
         self.rect.center = self.pos #self.rect.center is tuple 
+
+    def upgrade(self):
+        self.xp -= self.xp_to_next_level(self.level)
+        self.level += 1
+
+    def get_health_percent(self):
+        return self.hp/self.max_hp
+
+    @staticmethod
+    def xp_to_next_level(level):
+        return int(10*level**1.5)
