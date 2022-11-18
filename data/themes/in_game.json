@@ -1,0 +1,26 @@
+{
+    "#hp_bar":
+    {
+        "colours":
+        {
+            "filled_bar": "#FF3333"
+        },
+        "misc":
+        {
+            "border_width": "0",
+            "follow_sprite_offset" : "-8, -10"
+        }
+    },
+    "#xp_bar":
+    {
+        "colours":
+        {
+            "text_shadow": "#000000",
+            "filled_bar": "#FFFF33"
+        },
+        "misc":
+        {
+            "shadow_width": "0"
+        }
+    }
+}

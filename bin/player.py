@@ -11,7 +11,7 @@ class Player(pygame.sprite.Sprite):
     atk=1, amr=0, max_hp=10, hp_r=0, speed=50):
         super().__init__()
         self.visible = visible 
-        self.image = pygame.Surface([50,50])
+        self.image = pygame.Surface([35,35])
         self.image.fill("#ffff00")
         self.rect = self.image.get_rect()
         self.pos = array(pos, dtype='float64')
@@ -28,6 +28,11 @@ class Player(pygame.sprite.Sprite):
         self.speed = speed
         self.xp = 0
         self.level = 0
+
+        # do this for health_bar work properly
+        self.health_capacity = self.max_hp
+        self.current_health = self.hp
+
 
     def move(self, drct):
         global fps
@@ -48,6 +53,10 @@ class Player(pygame.sprite.Sprite):
             self.upgrade()
         self.rect.center = self.pos #self.rect.center is tuple 
 
+        # do this for health_bar work properly
+        self.health_capacity = self.max_hp
+        self.current_health = self.hp
+
     def upgrade(self):
         self.xp -= self.xp_to_next_level(self.level)
         self.level += 1
@@ -55,6 +64,9 @@ class Player(pygame.sprite.Sprite):
     def get_health_percent(self):
         return self.hp/self.max_hp
 
+    def get_xp_percent(self):
+        return self.xp/self.xp_to_next_level(self.level)
+
     @staticmethod
     def xp_to_next_level(level):
-        return int(10*level**1.5)
+        return int(10*(level+1)**1.5)

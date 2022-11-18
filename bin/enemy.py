@@ -8,7 +8,7 @@ from numpy.linalg import norm
 class Enemy(pygame.sprite.Sprite):
 
     def __init__(self, pos, player,
-        max_hp=10, atk=1, speed=20, amr=0):
+        max_hp=10, atk=1, speed=20, amr=0, xp=1):
         super().__init__()
         self.image = pygame.Surface([15,15])
         self.image.fill("#ff0000")
@@ -21,10 +21,12 @@ class Enemy(pygame.sprite.Sprite):
         self.atk = atk
         self.speed = speed
         self.amr = amr
+        self.xp = xp
 
 
     def update(self):
         if self.hp == 0:
+            self.player.xp += self.xp
             self.kill()
             return
         drct = self.player.pos-self.pos

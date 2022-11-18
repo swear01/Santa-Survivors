@@ -2,7 +2,8 @@
 
 ## critical
 
-- [ ] hp system
+- [x] hp system
+- [x] xp system 
 - [ ] death systems (include game clean-up)
 - [ ] upgrade system
 - [ ] items system
