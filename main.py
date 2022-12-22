@@ -22,7 +22,7 @@ for theme_file_path in theme_paths:
 player = Player(pos=(200,200))
 players = pygame.sprite.Group()
 players.add(player)
-#player.weapons.append(Weapon('test', player=player, b_amt=7))
+player.weapons.append(Weapon('test', player=player, b_amt=7))
 player.weapons.append(Weapon('autoaim', player=player, b_speed=125, b_hp=2))
 
 #gui init

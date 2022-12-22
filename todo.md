@@ -4,17 +4,17 @@
 
 - [x] hp system
 - [x] xp system 
-- [ ] death systems (include game clean-up)
-- [ ] upgrade system -林禹融
-- [ ] skills system (shop) -林禹融
-- [ ] items system -林禹融
-- [ ] weapon textures -林郁晴
+- [ ] death systems (include game clean-up) - 黃思維
+- [ ] upgrade system - 林禹融
+- [ ] skills system (shop) - 林禹融
+- [ ] items system - 林禹融
+- [ ] weapon textures - 曾千易
 - [ ] move center of screen while player near the screen edge (for the purpose of infinity map) -林郁晴
-- [ ] map barriers
-- [ ] HUD
-- [ ] enemies drops
+- [ ] map barriers - 黃思維
+- [ ] HUD - 黃思維
+- [ ] enemies drops - 黃思維
 - [ ] player faces direction -林郁晴
-- [ ] pause
+- [ ] pause - 林禹融
 
 ## animations/textures
 
