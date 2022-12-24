@@ -1,8 +1,8 @@
 import pygame
 from pygame.locals import * # CONSTS
 from .weapon import Weapon
-from .config import fps
 from numpy import array
+
 class Player(pygame.sprite.Sprite):
     MAX_WEAPONS = 6
     MAX_UPGRADES = 6
@@ -16,7 +16,7 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.pos = array(pos, dtype='float64')
 
-        self.weapons: List[Weapon] = []
+        self.weapons: list[Weapon] = []
         self.upgrades = []
        
         
@@ -34,21 +34,20 @@ class Player(pygame.sprite.Sprite):
         self.current_health = self.hp
 
 
-    def move(self, drct):
-        global fps
+    def move(self, drct, dt):
         if drct == 'up':
-            self.pos[1] -= 1/fps*self.speed
+            self.pos[1] -= self.speed*dt
 
         if drct == 'down':
-            self.pos[1] += 1/fps*self.speed
+            self.pos[1] += self.speed*dt
 
         if drct == 'left':
-            self.pos[0] -= 1/fps*self.speed
+            self.pos[0] -= self.speed*dt
 
         if drct == 'right':
-            self.pos[0] += 1/fps*self.speed
+            self.pos[0] += self.speed*dt
 
-    def update(self):
+    def update(self, dt):
         if self.xp > self.xp_to_next_level(self.level):
             self.upgrade()
         self.rect.center = self.pos #self.rect.center is tuple 

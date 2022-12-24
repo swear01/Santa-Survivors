@@ -1,6 +1,6 @@
 import pygame
 from pygame.locals import * # CONSTS
-from .config import fps,width,height
+from .config import width,height
 from random import randrange, random
 from numpy import array 
 from numpy.linalg import norm
@@ -24,20 +24,20 @@ class Enemy(pygame.sprite.Sprite):
         self.xp = xp
 
 
-    def update(self):
+    def update(self, dt):
         if self.hp == 0:
             self.player.xp += self.xp
             self.kill()
             return
         drct = self.player.pos-self.pos
         drct /= norm(drct)
-        self.pos += self.speed/fps*drct
+        self.pos += self.speed*dt*drct
         self.rect.center = self.pos
 
-    def avoid(self, knockback=2):
+    def avoid(self, knockback=20):
         drct = self.pos - self.player.pos
         drct /= norm(drct)
-        self.pos += drct*10*knockback
+        self.pos += drct*knockback
 
     @classmethod
     def spawn_enemy(cls, player, type='test', amt=1):

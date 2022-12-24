@@ -7,6 +7,7 @@ from bin.player import Player
 from bin.weapon import Weapon
 from bin.enemy import Enemy
 from bin.config import *
+from bin.backend import Backend
 
 
 pygame.init()
@@ -18,6 +19,8 @@ screen = pygame.display.set_mode((width, height))
 manager = pygame_gui.UIManager((width,height))
 for theme_file_path in theme_paths:
     manager.get_theme().load_theme(theme_file_path)
+    
+backend = Backend()
 
 player = Player(pos=(200,200))
 players = pygame.sprite.Group()
@@ -44,43 +47,49 @@ hp_bar = pygame_gui.elements.UIStatusBar(relative_rect=(0,0,51,10), manager=mana
 
 bullets, enemies = pygame.sprite.Group(), pygame.sprite.Group()
 enemy_timer = enemy_cooldown
+clock.tick() ##init call
 while True:
-    d_time = clock.tick(fps)/1000
     for event in pygame.event.get():
         manager.process_events(event=event)
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
+        if event.type == KEYDOWN:
+            if event.key == K_p :
+                backend.paused = not backend.paused
+              
+    dt = clock.tick(FPS)/1000
+    if backend.paused : dt = 0  
 
 
     keys = pygame.key.get_pressed()
     if keys[K_a] and not keys[K_d]:
-        player.move('left')
+        player.move('left', dt)
     if keys[K_d] and not keys[K_a]:
-        player.move('right')
+        player.move('right', dt)
     if keys[K_s] and not keys[K_w]:
-        player.move('down')
+        player.move('down', dt)
     if keys[K_w] and not keys[K_s]:
-        player.move('up')
+        player.move('up', dt)
     
     for weapon in player.weapons:
-        weapon.reload -= 1/fps
+        weapon.reload -= 1*dt
         if weapon.reload <= 0:
             weapon.reload += weapon.cooldown
             bullets.add(weapon.shoot(player.rect.center, enemies))
 
-    enemy_timer-=1
+    enemy_timer-= 1*dt
     if enemy_timer <= 0 : 
         enemy_timer = enemy_cooldown
         enemies.add(Enemy.spawn_enemy(player=player))
 
 
     #update position
-    player.update() 
+    player.update(dt) 
     for bullet in bullets:
-        bullet.update()
+        bullet.update(dt)
     for enemy in enemies:
-        enemy.update()    
+        enemy.update(dt)    
 
     #collision code
     b_e_collide = pygame.sprite.groupcollide(bullets, enemies, False, False)
@@ -106,7 +115,7 @@ while True:
 
 
 
-    manager.update(d_time)
+    manager.update(dt)
 
     # draw zone
     screen.fill('#000000')

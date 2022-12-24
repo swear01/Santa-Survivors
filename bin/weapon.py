@@ -3,7 +3,6 @@ from pygame.locals import * # CONSTS
 from math import cos, sin, pi, dist
 from numpy import array
 from numpy.linalg import norm
-from .config import fps
 from .enemy import Enemy
 
 BULLET_MAX_DIST = 400
@@ -52,13 +51,13 @@ class Bullet(pygame.sprite.Sprite):
         self.hp = hp # hp is how many enemies can the bullet hit
         self.atk = atk
 
-    def update(self):
+    def update(self, dt):
         if dist(self.pos, self.player.pos) > 300 :
             self.kill()
             return
         if self.hp == 0 : 
             self.kill()
             return
-        self.pos += self.vec/fps
+        self.pos += self.vec*dt
         self.rect.center = self.pos
 
