@@ -2,8 +2,8 @@
 
 ## critical
 
-- [x] hp system
-- [x] xp system 
+- [x] hp system - 黃思維
+- [x] xp system - 黃思維
 - [ ] death systems (include game clean-up) - 黃思維
 - [ ] upgrade system - 林禹融
 - [ ] skills system (shop) - 林禹融
@@ -14,7 +14,7 @@
 - [ ] HUD - 黃思維
 - [ ] enemies drops - 黃思維
 - [ ] player faces direction -林郁晴
-- [ ] pause - 林禹融
+- [x] pause - 黃思維
 
 ## animations/textures
 
