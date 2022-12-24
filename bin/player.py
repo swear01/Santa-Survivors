@@ -8,7 +8,7 @@ class Player(pygame.sprite.Sprite):
     MAX_UPGRADES = 6
 
     def __init__(self, pos=[0,0], visible=True,
-    atk=1, amr=0, max_hp=10, hp_r=0, speed=50):
+    atk=1, amr=0, max_hp=10, hp_r=0, speed=50, absorb_range = 50):
         super().__init__()
         self.visible = visible 
         self.image = pygame.Surface([35,35])
@@ -28,6 +28,7 @@ class Player(pygame.sprite.Sprite):
         self.speed = speed
         self.xp = 0
         self.level = 0
+        self.absorb_range = absorb_range
 
         # do this for health_bar work properly
         self.health_capacity = self.max_hp

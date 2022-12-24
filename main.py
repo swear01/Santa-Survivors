@@ -45,7 +45,7 @@ hp_bar = pygame_gui.elements.UIStatusBar(relative_rect=(0,0,51,10), manager=mana
     sprite=player, follow_sprite=True, anchors={'centerx':'left'},
     percent_method=player.get_health_percent, object_id=ObjectID('#hp_bar','@player_bar'))
 
-bullets, enemies = pygame.sprite.Group(), pygame.sprite.Group()
+bullets, enemies, drops = pygame.sprite.Group(), pygame.sprite.Group(), pygame.sprite.Group()
 enemy_timer = enemy_cooldown
 clock.tick() ##init call
 while True:
@@ -89,7 +89,9 @@ while True:
     for bullet in bullets:
         bullet.update(dt)
     for enemy in enemies:
-        enemy.update(dt)    
+        drops.add(enemy.update(dt))
+    for drop in drops:
+        drop.update(dt)
 
     #collision code
     b_e_collide = pygame.sprite.groupcollide(bullets, enemies, False, False)
@@ -109,6 +111,11 @@ while True:
     for enemy in enemies_atked:
         player.hp -= enemy.atk
         enemy.avoid()
+        
+    drops_absorbed = pygame.sprite.spritecollide(player, drops, dokill=False)
+    
+    for drop in drops_absorbed:
+        drop.absorbed()
 
     # gui updates
     # level_text.set_text(f'{player.level} Levels')
@@ -120,6 +127,7 @@ while True:
     # draw zone
     screen.fill('#000000')
     bullets.draw(screen)
+    drops.draw(screen)
     enemies.draw(screen)
     players.draw(screen) #player is always at the top
     manager.draw_ui(screen)
