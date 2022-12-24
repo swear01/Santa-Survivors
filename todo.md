@@ -12,9 +12,27 @@
 - [ ] move center of screen while player near the screen edge (for the purpose of infinity map) -林郁晴
 - [ ] map barriers - 黃思維
 - [ ] HUD - 黃思維
-- [ ] enemies drops - 黃思維
+- [x] enemies drops - 黃思維
 - [ ] player faces direction -林郁晴
 - [x] pause - 黃思維
+
+## also critical
+
+- [ ] kills/gold counters - 黃思維
+- [ ] main page - 曾千易
+- [ ] character seletion page - 曾千易
+- [ ] summary page (after death)
+- [ ] melee weapon - 林郁晴
+- [ ] setting page - 曾千易
+- [ ] credits page - 曾千易
+- [ ] game history - 黃思維
+
+## side list for variety
+
+- [ ] more weapon - 林郁晴
+- [ ] more items - 林禹融
+- [ ] more enemies - 黃思維
+- [ ] more characters - 黃思維
 
 ## animations/textures
 
@@ -28,24 +46,6 @@
 - [ ] enemies death
 - [ ] BGM
 - [ ] 音效
-
-## also critical
-
-- [ ] kills/gold counters
-- [ ] main page - 曾千易
-- [ ] character seletion page - 曾千易
-- [ ] summary page (after death)
-- [ ] melee weapon 
-- [ ] setting page - 曾千易
-- [ ] credits page - 曾千易
-- [ ] game history
-
-## side list for variety
-
-- [ ] more weapon
-- [ ] more items
-- [ ] more enemies
-- [ ] more characters
 
 ## not really vital, can be postpond
 
