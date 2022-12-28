@@ -1,5 +1,7 @@
 # notes
 
+
+
 Just a note for other programmers
 
 Pygame Handle Position with int,
