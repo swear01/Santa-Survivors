@@ -5,7 +5,6 @@ from numpy import array
 from numpy.linalg import norm
 from .enemy import Enemy
 
-BULLET_MAX_DIST = 400
 
 class Weapon:
     def __init__(self, name, player, 
@@ -34,9 +33,10 @@ class Weapon:
             vec = nearest_enemy.pos-self.player.pos
             vec *= self.b_speed/norm(vec)
             return Bullet(pos, vec, self.player, color='#ff00ff', hp=self.b_hp, atk=self.atk, kind='autoaim')
-            
+ 
+BULLET_MAX_DIST = 400           
 
-class Bullet(pygame.sprite.Sprite):
+class Bullet(pygame.sprite.Sprite, Weapon):
     def __init__(self,pos, vec, player, color,
         hp, atk, kind):
         super().__init__()
@@ -61,3 +61,27 @@ class Bullet(pygame.sprite.Sprite):
         self.pos += self.vec*dt
         self.rect.center = self.pos
 
+# class Sled(pygame.sprite.Sprite, Weapon):
+#     def __int__(self, pos, vec, player, color,
+#                 atk, kind):
+#         super().__init__()
+#         self.image = pygame.Surface([40, 40])
+#         self.image.fill(color)
+#         self.rect = self.image.get_rect()
+#         self.player = player
+#         self.rect.topright = (0, self.player.pos[0])
+#         # self.pos = array(pos, dtype='float64')
+#         self.vec = array(vec, dtype='float64')
+#         self.kind = kind
+
+#         # self.hp = hp  # hp is how many enemies can the bullet hit
+#         self.atk = atk
+
+#     def update(self, dt):
+#         self.x += self.vec * dt * 0.5
+#         if self.left >= width:
+#             self.rect.topright = (0, self.player.pos[1])
+    
+#     def shoot(self, pos, enemies):
+#         bullets = pygame.sprite.Group()
+#         bullets.add(Sled(pos, vec, player, color, atk, kind))

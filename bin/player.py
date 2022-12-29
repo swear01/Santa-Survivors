@@ -11,8 +11,9 @@ class Player(pygame.sprite.Sprite):
     atk=1, amr=0, max_hp=10, hp_r=0, speed=50, absorb_range = 50):
         super().__init__()
         self.visible = visible 
-        self.image = pygame.Surface([35,35])
-        self.image.fill("#ffff00")
+        self.image_ori = pygame.Surface([35,35])
+        self.image_ori.fill("#ffff00")
+        self.image = self.image_ori.copy()
         self.rect = self.image.get_rect()
         self.pos = array(pos, dtype='float64')
 
@@ -66,6 +67,13 @@ class Player(pygame.sprite.Sprite):
 
     def get_xp_percent(self):
         return self.xp/self.xp_to_next_level(self.level)
+    
+
+    def turn(self, direction):
+        if direction == 'left':
+            self.image = self.image_ori
+        if direction == 'right':
+            self.image = pygame.transform.flip (self.image_ori,False,True)
 
     @staticmethod
     def xp_to_next_level(level):

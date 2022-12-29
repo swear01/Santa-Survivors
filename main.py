@@ -65,8 +65,12 @@ while True:
     keys = pygame.key.get_pressed()
     if keys[K_a] and not keys[K_d]:
         player.move('left', dt)
+        player.direction = 'left'
+        player.turn('left')
     if keys[K_d] and not keys[K_a]:
         player.move('right', dt)
+        player.direction = 'right'
+        player.turn('right')
     if keys[K_s] and not keys[K_w]:
         player.move('down', dt)
     if keys[K_w] and not keys[K_s]:
@@ -136,4 +140,3 @@ while True:
 
 
     #print(clock.get_fps(), len(enemies), len(bullets))
-    
