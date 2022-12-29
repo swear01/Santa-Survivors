@@ -4,8 +4,7 @@ from math import cos, sin, pi, dist
 from numpy import array
 from numpy.linalg import norm
 from .enemy import Enemy
-
-BULLET_MAX_DIST = 400
+from .config import *
 
 class Weapon:
     def __init__(self, name, player, 
@@ -53,7 +52,8 @@ class Bullet(pygame.sprite.Sprite):
         self.atk = atk
 
     def update(self, dt):
-        if dist(self.pos, self.player.pos) > 300 :
+        #out of screen and disappear
+        if self.pos[0] > width+100 or self.pos[0] < -100 or self.pos[1] > height+100 or self.pos[1] < -100 :
             self.kill()
             return
         if self.hp == 0 : 

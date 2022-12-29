@@ -3,19 +3,21 @@ import pygame_gui
 from pygame_gui.core import ObjectID
 from pygame.locals import * # CONSTS
 import sys
+from bin.config import *
+
+pygame.init() #place here or get error.
+screen = pygame.display.set_mode((width, height))
+
 from bin.player import Player
 from bin.weapon import Weapon
 from bin.enemy import Spawner
-from bin.config import *
 from bin.backend import Backend
 from bin.ui import *
 
-pygame.init()
+
  
 
 clock = pygame.time.Clock()
-
-screen = pygame.display.set_mode((width, height))
 manager = pygame_gui.UIManager((width,height))
 for theme_file_path in theme_paths:
     manager.get_theme().load_theme(theme_file_path)
@@ -23,7 +25,7 @@ for theme_file_path in theme_paths:
 backend = Backend()
 
 def gaming():
-    time_elpased = 0
+    time_elapsed = 0
     player = Player(pos=(200,200))
     players = pygame.sprite.Group()
     players.add(player)
@@ -109,6 +111,8 @@ def gaming():
                     pass
                 else:
                     pause[i].visible = 1
+                    
+        time_elapsed += dt
 
 
         keys = pygame.key.get_pressed()
@@ -128,7 +132,7 @@ def gaming():
                 bullets.add(weapon.shoot(player.rect.center, enemies))
 
 
-        enemies.add(spawner.spawn(time_elpased, dt, player, 5))
+        enemies.add(spawner.spawn(time_elapsed, dt, player, 5))
 
 
         #update position
@@ -136,7 +140,7 @@ def gaming():
         for bullet in bullets:
             bullet.update(dt)
         for enemy in enemies:
-            drops.add(enemy.update(dt))
+            drops.add(enemy.update(time_elapsed, dt))
         for drop in drops:
             drop.update(dt)
 

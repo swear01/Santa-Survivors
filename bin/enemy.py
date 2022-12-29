@@ -5,11 +5,11 @@ from random import randrange, random
 from numpy import array 
 from numpy.linalg import norm
 from abc import ABCMeta, abstractmethod
-import configparser
+from configparser import ConfigParser, ExtendedInterpolation
 import sys
 from bisect import bisect
 
-eneny_config = configparser.ConfigParser()
+eneny_config = ConfigParser(interpolation=ExtendedInterpolation())
 eneny_config.read('./data/config/enemy.ini')
 
 def str_to_class(classname):
@@ -58,7 +58,7 @@ class Enemy(pygame.sprite.Sprite, metaclass=ABCMeta):
         return drops
 
 
-    def update(self, dt):
+    def update(self, time_elapsed, dt):
         if self.hp <= 0:
             return self.death()
         
@@ -66,6 +66,9 @@ class Enemy(pygame.sprite.Sprite, metaclass=ABCMeta):
         drct /= norm(drct)
         self.pos += self.speed*dt*drct
         self.rect.center = self.pos
+        
+        #animations
+        self.image = self.images[int(time_elapsed) % len(self.images)]
         return [] #for compability
 
     def avoid(self, knockback=20):
@@ -89,12 +92,13 @@ class Polarbear(Enemy):
     amr = float(config['amr'])
     width = int(config['width'])
     height = int(config['height'])
+    images = [pygame.image.load(path).convert_alpha() for path in config['img_dirs'].split('\n')]
+    images = [img.subsurface(img.get_bounding_rect()) for img in images] #if images have transparent skirts
     
     
     def __init__(self, pos, player):
         super().__init__(player)
-        self.image = pygame.Surface([self.width, self.height])
-        self.image.fill("#ff0000")
+        self.image = self.images[0]
         self.rect = self.image.get_rect()
         self.pos = array(pos)
 
@@ -119,11 +123,11 @@ class Spawner():
         enemies = []
         
         spawn_center_pos = array((random()*width, random()*height))
-        while norm(spawn_center_pos-player.pos) < 250 : #do while
+        while norm(spawn_center_pos-player.pos) < 700 : #do while
             spawn_center_pos = array((random()*width, random()*height), dtype=float)    
             
         for i in range(amount):
-            spawn_pos = spawn_center_pos + array((random()*50, random()*50), dtype=float)
+            spawn_pos = spawn_center_pos + array((random(), random()), dtype=float)*200
             enemies.append(spawn_type(spawn_pos, player))
 
         return enemies            
