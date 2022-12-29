@@ -5,7 +5,7 @@ from pygame.locals import * # CONSTS
 import sys
 from bin.player import Player
 from bin.weapon import Weapon
-from bin.enemy import Enemy
+from bin.enemy import Spawner
 from bin.config import *
 from bin.backend import Backend
 from bin.ui import *
@@ -23,7 +23,7 @@ for theme_file_path in theme_paths:
 backend = Backend()
 
 def gaming():
-
+    time_elpased = 0
     player = Player(pos=(200,200))
     players = pygame.sprite.Group()
     players.add(player)
@@ -36,7 +36,7 @@ def gaming():
     # )
 
     bullets, enemies, drops = pygame.sprite.Group(), pygame.sprite.Group(), pygame.sprite.Group()
-    enemy_timer = enemy_cooldown
+    spawner = Spawner()
     #gui init
     xp_bar_width = width-2*xp_bar_margin
     xp_bar = pygame_gui.elements.UIStatusBar(relative_rect=pygame.Rect(xp_bar_margin,xp_bar_margin,xp_bar_width,20), manager=manager,
@@ -94,7 +94,7 @@ def gaming():
                             return chosen,False
 
         dt = clock.tick(FPS)/1000
-        ds = clock.tick(FPS)/1000*3
+        ds = dt*3
 
         if backend.paused : 
             dt = 0
@@ -127,10 +127,8 @@ def gaming():
                 weapon.reload += weapon.cooldown
                 bullets.add(weapon.shoot(player.rect.center, enemies))
 
-        enemy_timer-= 1*dt
-        if enemy_timer <= 0 : 
-            enemy_timer = enemy_cooldown
-            enemies.add(Enemy.spawn_enemy(player=player))
+
+        enemies.add(spawner.spawn(time_elpased, dt, player, 5))
 
 
         #update position

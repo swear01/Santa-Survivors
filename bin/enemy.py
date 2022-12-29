@@ -5,7 +5,15 @@ from random import randrange, random
 from numpy import array 
 from numpy.linalg import norm
 from abc import ABCMeta, abstractmethod
+import configparser
+import sys
+from bisect import bisect
 
+eneny_config = configparser.ConfigParser()
+eneny_config.read('./data/config/enemy.ini')
+
+def str_to_class(classname):
+    return getattr(sys.modules[__name__], classname)
 
 class Drop(pygame.sprite.Sprite, metaclass=ABCMeta):
     def __init__(self, pos, player):
@@ -37,22 +45,11 @@ class Xporb(Drop):
         self.player.xp += self.xp
     
 
-class Enemy(pygame.sprite.Sprite):
+class Enemy(pygame.sprite.Sprite, metaclass=ABCMeta):
 
-    def __init__(self, pos, player,
-        max_hp=10, atk=1, speed=20, amr=0):
+    def __init__(self, player):
         super().__init__()
-        self.image = pygame.Surface([15,15])
-        self.image.fill("#ff0000")
-        self.rect = self.image.get_rect()
-        self.pos = array(pos)
         self.player = player
-
-        self.max_hp = max_hp
-        self.hp = max_hp
-        self.atk = atk
-        self.speed = speed
-        self.amr = amr
 
     def death(self) -> Drop : #return drop
         self.kill()
@@ -62,7 +59,7 @@ class Enemy(pygame.sprite.Sprite):
 
 
     def update(self, dt):
-        if self.hp == 0:
+        if self.hp <= 0:
             return self.death()
         
         drct = self.player.pos-self.pos
@@ -76,20 +73,57 @@ class Enemy(pygame.sprite.Sprite):
         drct /= norm(drct)
         self.pos += drct*knockback
 
-    @classmethod
-    def spawn_enemy(cls, player, type='test', amt=1):
-        spawn_pos = (random()*width, random()*height)
-        while norm(spawn_pos-player.pos) < 200 :
-            # respawn if too near player
-            spawn_pos = (random()*width, random()*height)            
-        
-        enemies = []
-        for i in range(amt):
-            enemies.append(Enemy(spawn_pos, player=player))
-
-        return enemies
-
     @staticmethod
     def nearest_enemy(player_pos, enemies):
+        if not enemies : return None
         return min(enemies, key=lambda enemy: norm(enemy.pos-player_pos))
     
+        
+    
+    
+class Polarbear(Enemy):
+    config:dict = eneny_config['Polarbear']
+    atk = float(config['atk'])
+    max_hp = float(config['max_hp'])
+    speed = float(config['speed'])
+    amr = float(config['amr'])
+    width = int(config['width'])
+    height = int(config['height'])
+    
+    
+    def __init__(self, pos, player):
+        super().__init__(player)
+        self.image = pygame.Surface([self.width, self.height])
+        self.image.fill("#ff0000")
+        self.rect = self.image.get_rect()
+        self.pos = array(pos)
+
+        self.hp = self.max_hp
+
+class Spawner():
+    def __init__(self):
+        self.spawn_period = 3
+        self.timer = self.spawn_period
+        self.spawn_lookup = [(int(i[0]),str_to_class(i[1])) for i in eneny_config.items('spawn_lookup')] #set types
+        
+    def update_period(self, period):
+        self.spawn_period = period
+    
+    def spawn(self, time_elapsed, dt, player, amount):
+        #need lots further modify    
+        self.timer -= dt
+        if self.timer > 0 : return []
+        self.timer = self.spawn_period
+        
+        spawn_type = self.spawn_lookup[bisect(self.spawn_lookup, (time_elapsed,))][1]
+        enemies = []
+        
+        spawn_center_pos = array((random()*width, random()*height))
+        while norm(spawn_center_pos-player.pos) < 250 : #do while
+            spawn_center_pos = array((random()*width, random()*height), dtype=float)    
+            
+        for i in range(amount):
+            spawn_pos = spawn_center_pos + array((random()*50, random()*50), dtype=float)
+            enemies.append(spawn_type(spawn_pos, player))
+
+        return enemies            

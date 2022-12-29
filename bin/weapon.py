@@ -30,6 +30,7 @@ class Weapon:
             return bullets
 
         if self.name == 'autoaim':
+            if not enemies : return []
             nearest_enemy = Enemy.nearest_enemy(pos, enemies)
             vec = nearest_enemy.pos-self.player.pos
             vec *= self.b_speed/norm(vec)
