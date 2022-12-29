@@ -48,6 +48,12 @@ class Player(pygame.sprite.Sprite):
 
         if drct == 'right':
             self.pos[0] += self.speed*dt
+    
+    def turn(self, drct):
+        if drct == 'left':
+            self.image = self.image_ori
+        if drct == 'right':
+            self.image = pygame.transform.flip (self.image_ori,False,True)
 
     def update(self, dt):
         if self.xp > self.xp_to_next_level(self.level):
@@ -67,13 +73,6 @@ class Player(pygame.sprite.Sprite):
 
     def get_xp_percent(self):
         return self.xp/self.xp_to_next_level(self.level)
-    
-
-    def turn(self, direction):
-        if direction == 'left':
-            self.image = self.image_ori
-        if direction == 'right':
-            self.image = pygame.transform.flip (self.image_ori,False,True)
 
     @staticmethod
     def xp_to_next_level(level):
