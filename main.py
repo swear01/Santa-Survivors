@@ -38,7 +38,7 @@ def gaming():
     #     anchors={'top':xp_bar, 'left':xp_bar}
     # )
 
-    bullets, enemies, drops = pygame.sprite.Group(), pygame.sprite.Group(), pygame.sprite.Group()
+    bullets, enemies, enemy_bullets, drops = pygame.sprite.Group(), pygame.sprite.Group(), pygame.sprite.Group(), pygame.sprite.Group()
     spawner = Spawner()
     huds = Huds(manager, width, height, player)
     clock.tick() ##init call
@@ -99,7 +99,7 @@ def gaming():
                 pause[selected].visible = 1
             for i in range(len(pause)):
                 if i == selected:
-                    pass
+                    passd
                 else:
                     pause[i].visible = 1
                     
@@ -133,7 +133,11 @@ def gaming():
         for bullet in bullets:
             bullet.update(dt)
         for enemy in enemies:
-            drops.add(enemy.update(time_elapsed, dt))
+            enemy_bullets.add(enemy.update(time_elapsed, dt))
+            drops.add(enemy.if_death())
+        for enemy_bullet in enemy_bullets:
+            enemy_bullet.update(time_elapsed, dt)
+            enemy_bullet.if_death()
         for drop in drops:
             drop.update(dt)
 
@@ -151,6 +155,7 @@ def gaming():
                 if bullet.hp <= 0 : break
 
         enemies_atked = pygame.sprite.spritecollide(player, enemies, dokill=False)
+        enemies_atked += pygame.sprite.spritecollide(player, enemy_bullets, dokill=False)
 
         for enemy in enemies_atked:
             player.hp -= enemy.atk
@@ -170,6 +175,7 @@ def gaming():
         screen.fill('#000000')
         bullets.draw(screen)
         drops.draw(screen)
+        enemy_bullets.draw(screen)
         enemies.draw(screen)
         players.draw(screen) #player is always at the top
         manager.draw_ui(screen)

@@ -15,6 +15,9 @@ eneny_config.read('./data/config/enemy.ini')
 def str_to_class(classname):
     return getattr(sys.modules[__name__], classname)
 
+def out_of_screen(pos):
+    return pos[0] > width+100 or pos[0] < -100 or pos[1] > height+100 or pos[1] < -100 
+
 class Drop(pygame.sprite.Sprite, metaclass=ABCMeta):
     def __init__(self, pos, player):
         super().__init__()
@@ -51,17 +54,19 @@ class Enemy(pygame.sprite.Sprite, metaclass=ABCMeta):
         super().__init__()
         self.player = player
 
+    def if_death(self) -> Drop:
+        if self.hp > 0 : return []
+        return self.death()
+
     def death(self) -> Drop : #return drop
         self.kill()
+        self.player.enemy_killed += 1
         drops = []
         drops.append(Xporb(self.pos, self.player))
         return drops
 
 
     def update(self, time_elapsed, dt):
-        if self.hp <= 0:
-            return self.death()
-        
         drct = self.player.pos-self.pos
         drct /= norm(drct)
         self.pos += self.speed*dt*drct
@@ -89,11 +94,10 @@ class Polarbear(Enemy):
     atk = float(config['atk'])
     max_hp = float(config['max_hp'])
     speed = float(config['speed'])
-    amr = float(config['amr'])
     width = int(config['width'])
     height = int(config['height'])
     images = [pygame.image.load(path).convert_alpha() for path in config['img_dirs'].split('\n')]
-    images = [img.subsurface(img.get_bounding_rect()) for img in images] #if images have transparent skirts
+    #images = [img.subsurface(img.get_bounding_rect()) for img in images] #if images have transparent skirts
     
     
     def __init__(self, pos, player):
@@ -103,11 +107,77 @@ class Polarbear(Enemy):
         self.pos = array(pos)
 
         self.hp = self.max_hp
+     
+class Snowman_ball(Enemy):
+    config:dict = eneny_config['Snowman_ball']
+    atk = float(config['atk'])
+    max_hp = float(config['max_hp'])
+    speed = float(config['speed'])
+    width = int(config['width'])
+    height = int(config['height'])
+    images = [pygame.image.load(path).convert_alpha() for path in config['img_dirs'].split('\n')][0]
+    images = pygame.transform.scale(images, (int(config['width']), int(config['height'])))
+    #images = [img.subsurface(img.get_bounding_rect()) for img in images] #if images have transparent skirts
+    
+    
+    def __init__(self, pos, player):
+        super().__init__(player)
+        self.image = self.images
+        self.rect = self.image.get_rect()
+        self.pos = array(pos)
+        self.hp = self.max_hp
+        self.drct = self.player.pos-self.pos 
+        self.drct /= norm(self.drct)   
+        
+    def update(self, time_elapsed, dt):
+        self.pos += self.speed*dt*self.drct
+        self.rect.center = self.pos
+        return []
+
+    def if_death(self) -> Drop:
+        if self.hp > 0 : return []
+        if not out_of_screen(self.pos) : return []
+        return self.death()
+
+    def death(self) -> Drop : #return drop
+        self.kill()
+        return []  
+
+    def avoid(self):
+        self.death()
+        
+class Snowman(Enemy):
+    config:dict = eneny_config['Snowman']
+    atk = float(config['atk'])
+    max_hp = float(config['max_hp'])
+    speed = float(config['speed'])
+    width = int(config['width'])
+    height = int(config['height'])
+    shoot_period = float(config['shoot_period'])
+    images = [pygame.image.load(path).convert_alpha() for path in config['img_dirs'].split('\n')]
+    #images = [img.subsurface(img.get_bounding_rect()) for img in images] #if images have transparent skirts
+    
+    
+    def __init__(self, pos, player):
+        super().__init__(player)
+        self.image = self.images[0]
+        self.rect = self.image.get_rect()
+        self.pos = array(pos)
+        self.shoot_timer = self.shoot_period
+        self.hp = self.max_hp    
+        
+    def update(self, time_elapsed, dt):
+        super().update(time_elapsed, dt)
+        self.shoot_timer -= dt
+        if self.shoot_timer > 0 : return []
+        self.shoot_timer += self.shoot_period
+        return Snowman_ball(self.pos, self.player)
+        
 
 class Spawner():
     def __init__(self):
         self.spawn_period = 3
-        self.timer = self.spawn_period
+        self.timer = 0
         self.spawn_lookup = [(int(i[0]),str_to_class(i[1])) for i in eneny_config.items('spawn_lookup')] #set types
         
     def update_period(self, period):

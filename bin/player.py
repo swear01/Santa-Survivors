@@ -29,6 +29,8 @@ class Player(pygame.sprite.Sprite):
         self.xp = 0
         self.level = 0
         self.absorb_range = absorb_range
+        self.enemy_killed = 0
+        self.gold_obtained = 0 
 
         # do this for health_bar work properly
         self.health_capacity = self.max_hp
