@@ -42,6 +42,7 @@
 - [ ] player death
 - [ ] backgrounds
 - [ ] enemies on-hit
+- [x] enemies movement
 - [ ] damage number
 - [ ] enemies death
 - [ ] BGM
@@ -51,7 +52,7 @@
 
 - [ ] Pause Game While Out Of Focus
 - [ ] Change the nparray to pygame.math.vector2 to decrease dependency
-- [ ] difficult seletion
+- [ ] difficulty seletion
 - [ ] more stages
 - [ ] more modes
 - [ ] joysticks / touchscreen support
