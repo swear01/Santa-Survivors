@@ -1,5 +1,5 @@
 FPS = 120
-width, height = 1920, 1080
+width, height = 1280, 720
 
 enemy_cooldown = 0.4
 
