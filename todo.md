@@ -11,7 +11,7 @@
 - [ ] weapon textures - 曾千易
 - [ ] move center of screen while player near the screen edge (for the purpose of infinity map) -林郁晴
 - [ ] map barriers - 黃思維
-- [ ] HUD - 黃思維
+- [x] HUD - 黃思維
 - [x] enemies drops - 黃思維
 - [ ] player faces direction -林郁晴
 - [x] pause - 黃思維
