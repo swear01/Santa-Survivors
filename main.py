@@ -12,6 +12,7 @@ from bin.player import Player
 from bin.weapon import Weapon
 from bin.enemy import Spawner
 from bin.backend import Backend
+from bin.huds import Huds
 from bin.ui import *
 
 
@@ -39,20 +40,10 @@ def gaming():
 
     bullets, enemies, drops = pygame.sprite.Group(), pygame.sprite.Group(), pygame.sprite.Group()
     spawner = Spawner()
-    #gui init
-    xp_bar_width = width-2*xp_bar_margin
-    xp_bar = pygame_gui.elements.UIStatusBar(relative_rect=pygame.Rect(xp_bar_margin,xp_bar_margin,xp_bar_width,20), manager=manager,
-        sprite=player, follow_sprite=False, anchors={'top':'top', 'left':'left', 'right':'right'},
-        percent_method=player.get_xp_percent ,object_id=ObjectID('#xp_bar','@player_bar'),visible=0)
-    xp_bar.status_text = lambda : f'Level {player.level}'
-        
-    hp_bar = pygame_gui.elements.UIStatusBar(relative_rect=(0,0,51,10), manager=manager,
-        sprite=player, follow_sprite=True, anchors={'centerx':'left'},
-        percent_method=player.get_health_percent, object_id=ObjectID('#hp_bar','@player_bar'))
+    huds = Huds(manager, width, height, player)
     clock.tick() ##init call
 
     while True:
-        xp_bar.visible = 1
         for event in pygame.event.get():
             manager.process_events(event=event)
             if event.type == QUIT:
@@ -113,6 +104,7 @@ def gaming():
                     pause[i].visible = 1
                     
         time_elapsed += dt
+        player.time_elapsed = time_elapsed
 
 
         keys = pygame.key.get_pressed()
@@ -137,6 +129,7 @@ def gaming():
 
         #update position
         player.update(dt) 
+        huds.update(time_elapsed)
         for bullet in bullets:
             bullet.update(dt)
         for enemy in enemies:
