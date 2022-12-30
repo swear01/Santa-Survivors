@@ -10,7 +10,8 @@ config.read('./data/config/huds.ini')
 
 class Huds:
     def __init__(self, manager, width, height, player):
-        
+        self.manager = manager
+        self.player = player
         xp_bar_width = width-2*int(config['xp_bar']['margin'])
         
         self.xp_bar = pygame_gui.elements.UIStatusBar(
@@ -31,14 +32,27 @@ class Huds:
             anchors={'centerx':'centerx','top_target':self.xp_bar}, text = '00 : 00', manager=manager,
             object_id=ObjectID('#timer')
             )
+
+        self.kill_counter = pygame_gui.elements.UILabel(
+            relative_rect=pygame.Rect(-250,0,int(config['kill_counter']['width']),int(config['kill_counter']['height'])),
+            anchors={'right':'right','top_target':self.xp_bar}, text = 'kills:0', manager=manager,
+            object_id=ObjectID('#kill_counter')
+            )
         #self.timer.set_text_scale(1)
         
         
-    def update(self, time_elapsed,killed=False):
+    def update(self, time_elapsed,kill_counts):
         self.timer.set_text(f'{(int(time_elapsed // 60)):02d} : {(int(time_elapsed) % 60):02d}')
+        self.kill_counter.set_text(f'kills:{kill_counts}')
     
     def kill(self):
         self.timer.kill()
         self.hp_bar.kill()
         self.xp_bar.kill()
+        self.kill_counter.kill()
+        self.kill_counter = pygame_gui.elements.UILabel(
+            relative_rect=pygame.Rect(100,400,int(config['kill_counter']['width']),int(config['kill_counter']['height'])),
+             text = f'kills:{self.player.enemy_killed}', manager=self.manager,
+            object_id=ObjectID('#kill_counter')
+            )
         

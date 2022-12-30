@@ -31,7 +31,7 @@ def gaming():
     players.add(player)
     player.weapons.append(Weapon('test', player=player, b_amt=7))
     player.weapons.append(Weapon('autoaim', player=player, b_speed=125, b_hp=2))
-
+    r,g,b = 128,128,128 #for game over animation
     # level_text = pygame_gui.elements.UILabel(relative_rect=pygame.Rect(5,2,50,16), text='init',
     #     manager=manager, parent_element=xp_bar,
     #     anchors={'top':xp_bar, 'left':xp_bar}
@@ -98,12 +98,13 @@ def gaming():
 
         #update position
         player.update(dt) 
-        huds.update(time_elapsed)
+        huds.update(time_elapsed,player.enemy_killed)
         for bullet in bullets:
             bullet.update(dt)
         for enemy in enemies:
             enemy_bullets.add(enemy.update(time_elapsed, dt))
             drops.add(enemy.if_death())
+
         for enemy_bullet in enemy_bullets:
             enemy_bullet.update(time_elapsed, dt)
             enemy_bullet.if_death()
@@ -163,10 +164,16 @@ def gaming():
         
         if backend.game_over:
             dt = 0
-            huds.kill()
-            backend.game_over = False
-            return "game_over",False
-
+            ds = clock.get_time()
+            r,g,b = r-ds*0.1,g-ds*0.1,b-ds*0.1
+            
+            if r <= 0:
+                screen.fill((0,0,0))
+                huds.kill()
+                backend.game_over = False
+                return "game_over",False
+            else:
+                screen.fill((r,g,b))
         pygame.display.flip()
 
 
@@ -177,13 +184,17 @@ clock.tick()#init call
 while True:
     if backend.main_page:
         next_stage,backend.main_page = main_page(screen,manager,clock)
-    if backend.start_game:
+    elif backend.select_character:
+        next_stage,backend.select_character = select_role(screen,manager,clock)
+    elif backend.start_game:
         next_stage,backend.start_game = gaming()
-    if backend.game_over:
+    elif backend.game_over:
         next_stage,backend.game_over = game_over(screen,manager,clock)
 
     if next_stage == 'main_page':
         backend.main_page = True
+    elif next_stage == 'select_character':
+        backend.select_character = True
     elif next_stage == 'start':
         backend.start_game = True
     elif next_stage == 'game_over':
