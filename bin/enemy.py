@@ -1,13 +1,15 @@
-import pygame
-from pygame.locals import * # CONSTS
-from .config import width,height
-from random import randrange, random
-from numpy import array 
-from numpy.linalg import norm
-from abc import ABCMeta, abstractmethod
-from configparser import ConfigParser, ExtendedInterpolation
 import sys
+from abc import ABCMeta, abstractmethod
 from bisect import bisect
+from configparser import ConfigParser, ExtendedInterpolation
+from random import random, randrange
+
+import pygame
+from numpy import array
+from numpy.linalg import norm
+from pygame.locals import *  # CONSTS
+
+from .config import height, width
 
 eneny_config = ConfigParser(interpolation=ExtendedInterpolation())
 eneny_config.read('./data/config/enemy.ini')
