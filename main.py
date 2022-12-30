@@ -4,7 +4,7 @@ from pygame_gui.core import ObjectID
 from pygame.locals import * # CONSTS
 import sys
 from bin.player import Player
-from bin.weapon import Weapon
+from bin.weapon import Weapon, DeerAntler
 from bin.enemy import Enemy
 from bin.config import *
 from bin.backend import Backend
@@ -66,9 +66,11 @@ while True:
     if keys[K_a] and not keys[K_d]:
         player.move('left', dt)
         player.turn('left')
+        player.drct = 'left'
     if keys[K_d] and not keys[K_a]:
         player.move('right', dt)
         player.turn('right')
+        player.drct = 'right'
     if keys[K_s] and not keys[K_w]:
         player.move('down', dt)
     if keys[K_w] and not keys[K_s]:
@@ -84,7 +86,6 @@ while True:
     if enemy_timer <= 0 : 
         enemy_timer = enemy_cooldown
         enemies.add(Enemy.spawn_enemy(player=player))
-
 
     #update position
     player.update(dt) 

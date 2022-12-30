@@ -20,7 +20,7 @@ class Player(pygame.sprite.Sprite):
         self.weapons: list[Weapon] = []
         self.upgrades = []
        
-        
+        self.drct = 'left'
         self.atk = atk
         self.amr = amr
         self.max_hp = max_hp
