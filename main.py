@@ -9,14 +9,9 @@ pygame.init() #place here or get error.
 screen = pygame.display.set_mode((width, height))
 
 from bin.player import Player
-<<<<<<< HEAD
 from bin.weapon import Weapon, DeerAntler
 from bin.enemy import Enemy
 from bin.config import *
-=======
-from bin.weapon import Weapon
-from bin.enemy import Spawner
->>>>>>> 638239a0f0b557f245c1bf1dac357ed1ae8137d7
 from bin.backend import Backend
 from bin.huds import Huds
 from bin.ui import *
@@ -113,7 +108,6 @@ def gaming():
         player.time_elapsed = time_elapsed
 
 
-<<<<<<< HEAD
     keys = pygame.key.get_pressed()
     if keys[K_a] and not keys[K_d]:
         player.move('left', dt)
@@ -166,17 +160,6 @@ def gaming():
     for enemy in enemies_atked:
         player.hp -= enemy.atk
         enemy.avoid()
-=======
-        keys = pygame.key.get_pressed()
-        if keys[K_a] and not keys[K_d]:
-            player.move('left', dt)
-        if keys[K_d] and not keys[K_a]:
-            player.move('right', dt)
-        if keys[K_s] and not keys[K_w]:
-            player.move('down', dt)
-        if keys[K_w] and not keys[K_s]:
-            player.move('up', dt)
->>>>>>> 638239a0f0b557f245c1bf1dac357ed1ae8137d7
         
         for weapon in player.weapons:
             weapon.reload -= 1*dt
@@ -248,7 +231,6 @@ def gaming():
     
 
 
-<<<<<<< HEAD
 
     manager.update(dt)
 
@@ -264,14 +246,3 @@ def gaming():
 
 
     #print(clock.get_fps(), len(enemies), len(bullets))
-=======
-while True:
-    if backend.main_page:
-        next_stage,backend.main_page = main_page(screen,manager)
-    if backend.start_game:
-        next_stage,backend.start_game = gaming()
-    if next_stage == 'main_page':
-        backend.main_page = True
-    elif next_stage == 'start':
-        backend.start_game = True
->>>>>>> 638239a0f0b557f245c1bf1dac357ed1ae8137d7
