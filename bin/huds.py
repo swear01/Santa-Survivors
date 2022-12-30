@@ -34,7 +34,11 @@ class Huds:
         #self.timer.set_text_scale(1)
         
         
-    def update(self, time_elapsed):
+    def update(self, time_elapsed,killed=False):
         self.timer.set_text(f'{(int(time_elapsed // 60)):02d} : {(int(time_elapsed) % 60):02d}')
-        
+    
+    def kill(self):
+        self.timer.kill()
+        self.hp_bar.kill()
+        self.xp_bar.kill()
         

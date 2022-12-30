@@ -27,7 +27,7 @@ backend = Backend()
 
 def gaming():
     time_elapsed = 0
-    player = Player(pos=(200,200))
+    player = Player(pos=(200,200),backend=backend)
     players = pygame.sprite.Group()
     players.add(player)
     player.weapons.append(Weapon('test', player=player, b_amt=7))
@@ -41,7 +41,6 @@ def gaming():
     bullets, enemies, enemy_bullets, drops = pygame.sprite.Group(), pygame.sprite.Group(), pygame.sprite.Group(), pygame.sprite.Group()
     spawner = Spawner()
     huds = Huds(manager, width, height, player)
-    clock.tick() ##init call
 
     while True:
         for event in pygame.event.get():
@@ -52,57 +51,24 @@ def gaming():
             if event.type == KEYDOWN:
                 if event.key == K_p and not backend.paused:
                     backend.paused = True
-                    ui_reload = 1
-                    ui_cooldown = 1
-                    resume_game =  pygame_gui.elements.UITextBox(html_text="resume",relative_rect=pygame.Rect((0,150), (100, 50)),
-                            manager=manager,anchors={'centerx': 'centerx'},object_id=ObjectID(class_id='@selected'))
-                    settings =  pygame_gui.elements.UITextBox(html_text="settings",relative_rect=pygame.Rect((0,225), (100, 50)),
-                            manager=manager,anchors={'centerx': 'centerx'},object_id=ObjectID(class_id='@selected'))
-                    quit_game =  pygame_gui.elements.UITextBox(html_text="quit",relative_rect=pygame.Rect((0,300), (100, 50)),
-                            manager=manager,anchors={'centerx': 'centerx'},object_id=ObjectID(class_id='@selected'))
-                    pause = [resume_game,settings,quit_game]
-                    selected = 0
-                    ds = 0
-
+                    pause = Pause(screen,backend)
                 if backend.paused:
-                    if event.key == K_UP and selected>0:
-                        selected-=1
-                    if event.key == K_DOWN and selected<len(pause)-1:
-                        selected+=1
-                    if event.key == K_RETURN:
-                        if pause[selected] == resume_game:
-                            for option in pause:
-                                option.kill()
-                            backend.paused = False
-                        else:
-                            if pause[selected] == settings:
-                                chosen = 'settings'
-                            if pause[selected] == quit_game:
-                                chosen = 'main_page'
-                            for option in pause:
-                                option.kill()
-                                xp_bar.kill()
-                                hp_bar.kill()
-                            backend.paused = False
-                            return chosen,False
+                    backend.game_over = pause.choose(event)
+                if backend.upgrade_menu:
+                    upgrade.choose(event)
+
 
         dt = clock.tick(FPS)/1000
-        ds = dt*3
 
-        if backend.paused : 
+        # gui updates
+        if backend.paused:
             dt = 0
-            ui_reload -= ds
-            if ui_reload <= 0:
-                pause[selected].visible = 0
-                ui_reload += ui_cooldown
-            else:
-                pause[selected].visible = 1
-            for i in range(len(pause)):
-                if i == selected:
-                    passd
-                else:
-                    pause[i].visible = 1
-                    
+            pause.show()
+        if backend.upgrade_menu:
+            dt = 0
+            upgrade.show()
+        # level_text.set_text(f'{player.level} Levels')
+
         time_elapsed += dt
         player.time_elapsed = time_elapsed
 
@@ -166,8 +132,6 @@ def gaming():
         for drop in drops_absorbed:
             drop.absorbed()
 
-        # gui updates
-        # level_text.set_text(f'{player.level} Levels')
 
         manager.update(dt)
 
@@ -180,19 +144,44 @@ def gaming():
         players.draw(screen) #player is always at the top
         manager.draw_ui(screen)
 
+        if backend.upgrade:
+            dt = 0
+            upgrade = Upgrade(screen,backend)
+            upgrade.draw()
+            backend.upgrade = False
+            backend.upgrade_menu = True
+
+        if backend.upgrade_menu:
+            dt = 0
+            upgrade.draw()
+
+        if backend.paused:
+            pause.draw()
+        
+        if backend.game_over:
+            dt = 0
+            huds.kill()
+            backend.game_over = False
+            return "game_over",False
+
         pygame.display.flip()
 
 
         #print(clock.get_fps(), len(enemies), len(bullets))
     
 
-
+clock.tick()#init call
 while True:
     if backend.main_page:
-        next_stage,backend.main_page = main_page(screen,manager)
+        next_stage,backend.main_page = main_page(screen,manager,clock)
     if backend.start_game:
         next_stage,backend.start_game = gaming()
+    if backend.game_over:
+        next_stage,backend.game_over = game_over(screen,manager,clock)
+
     if next_stage == 'main_page':
         backend.main_page = True
     elif next_stage == 'start':
         backend.start_game = True
+    elif next_stage == 'game_over':
+        backend.game_over = True
