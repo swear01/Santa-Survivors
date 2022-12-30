@@ -4,8 +4,8 @@ from math import cos, sin, pi, dist, inf, atan
 from numpy import array
 from numpy.linalg import norm
 from .enemy import Enemy
-from main import width
 
+BULLET_MAX_DIST = 400
 
 class Weapon:
     def __init__(self, name, player, 
@@ -30,6 +30,7 @@ class Weapon:
             return bullets
 
         if self.name == 'autoaim':
+            if not enemies : return []
             nearest_enemy = Enemy.nearest_enemy(pos, enemies)
             vec = nearest_enemy.pos-self.player.pos
             vec *= self.b_speed/norm(vec)
@@ -53,7 +54,8 @@ class Bullet(pygame.sprite.Sprite, Weapon):
         self.atk = atk
 
     def update(self, dt):
-        if dist(self.pos, self.player.pos) > 300 :
+        #out of screen and disappear
+        if self.pos[0] > width+100 or self.pos[0] < -100 or self.pos[1] > height+100 or self.pos[1] < -100 :
             self.kill()
             return
         if self.hp == 0 : 
