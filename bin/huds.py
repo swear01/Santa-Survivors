@@ -1,9 +1,9 @@
+from configparser import ConfigParser, ExtendedInterpolation
+
 import pygame
 import pygame_gui
-from configparser import ConfigParser, ExtendedInterpolation
+from pygame.locals import *  # CONSTS
 from pygame_gui.core import ObjectID
-from pygame.locals import * # CONSTS
-
 
 config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read('./data/config/huds.ini')

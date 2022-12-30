@@ -1,7 +1,9 @@
 import pygame
-from pygame.locals import * # CONSTS
-from .weapon import Weapon
 from numpy import array
+from pygame.locals import *  # CONSTS
+
+from .weapon import Weapon
+
 
 class Player(pygame.sprite.Sprite):
     MAX_WEAPONS = 6
@@ -11,15 +13,16 @@ class Player(pygame.sprite.Sprite):
     atk=1, amr=0, max_hp=10, hp_r=0, speed=50, absorb_range = 50):
         super().__init__()
         self.visible = visible 
-        self.image = pygame.Surface([35,35])
-        self.image.fill("#ffff00")
+        self.image_ori = pygame.Surface([35,35])
+        self.image_ori.fill("#ffff00")
+        self.image = self.image_ori.copy()
         self.rect = self.image.get_rect()
         self.pos = array(pos, dtype='float64')
 
         self.weapons: list[Weapon] = []
         self.upgrades = []
        
-        
+        self.drct = 'left'        
         self.atk = atk
         self.amr = amr
         self.max_hp = max_hp
@@ -49,6 +52,12 @@ class Player(pygame.sprite.Sprite):
 
         if drct == 'right':
             self.pos[0] += self.speed*dt
+
+    def turn(self, drct):
+        if drct == 'left':
+            self.image = self.image_ori
+        if drct == 'right':
+            self.image = pygame.transform.flip (self.image_ori,False,True)
 
     def update(self, dt):
         if self.xp > self.xp_to_next_level(self.level):
