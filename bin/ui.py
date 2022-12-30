@@ -1,13 +1,15 @@
+import os
+from abc import ABCMeta, abstractmethod
+from random import random, randrange
+
 import pygame
 import pygame_gui
-from pygame.locals import * # CONSTS
-from pygame_gui.core import ObjectID
-from .config import *
-from random import randrange, random
-from numpy import array 
+from numpy import array
 from numpy.linalg import norm
-from abc import ABCMeta, abstractmethod
-import os
+from pygame.locals import *  # CONSTS
+from pygame_gui.core import ObjectID
+
+from .config import *
 from configparser import ConfigParser, ExtendedInterpolation
 
 

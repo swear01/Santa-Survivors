@@ -1,22 +1,21 @@
+import sys
+
 import pygame
 import pygame_gui
+from pygame.locals import *  # CONSTS
 from pygame_gui.core import ObjectID
-from pygame.locals import * # CONSTS
-import sys
+
 from bin.config import *
 
 pygame.init() #place here or get error.
 screen = pygame.display.set_mode((width, height))
 
-from bin.player import Player
-from bin.weapon import Weapon
-from bin.enemy import Spawner
 from bin.backend import Backend
+from bin.enemy import Spawner
 from bin.huds import Huds
+from bin.player import Player
 from bin.ui import *
-
-
- 
+from bin.weapon import DeerAntler, Weapon
 
 clock = pygame.time.Clock()
 manager = pygame_gui.UIManager((width,height))
@@ -76,8 +75,12 @@ def gaming():
         keys = pygame.key.get_pressed()
         if keys[K_a] and not keys[K_d]:
             player.move('left', dt)
+            player.turn('left')
+            player.drct = 'left'
         if keys[K_d] and not keys[K_a]:
             player.move('right', dt)
+            player.turn('right')
+            player.drct = 'right'
         if keys[K_s] and not keys[K_w]:
             player.move('down', dt)
         if keys[K_w] and not keys[K_s]:
