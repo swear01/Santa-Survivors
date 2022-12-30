@@ -178,12 +178,14 @@ class Snowman(Enemy):
 
 class Spawner():
     def __init__(self):
-        self.spawn_period = 3
+        config = eneny_config['spawner']
+        self.base_spawn_period = config['base_spawn_period']
+        self.spawn_period_ratio = 1
         self.timer = 0
         self.spawn_lookup = [(int(i[0]),str_to_class(i[1])) for i in eneny_config.items('spawn_lookup')] #set types
         
-    def update_period(self, period):
-        self.spawn_period = period
+    def spawn_period(self):
+        return self.base_spawn_period
     
     def spawn(self, time_elapsed, dt, player, amount):
         #need lots further modify    
