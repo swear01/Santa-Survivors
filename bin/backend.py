@@ -2,7 +2,7 @@
 class Backend:
     def __init__(self) -> None:
         self.main_page = True
-        self.select_role = False
+        self.select_character = False
         self.start_game = False
         self.settings = False
         self.paused = False

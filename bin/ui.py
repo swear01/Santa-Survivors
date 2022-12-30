@@ -106,6 +106,29 @@ class Resume():
             self.screen.blit(self.img[0],(self.x,self.y))
 
 
+class Charcter_option():
+    def __init__(self,screen,character_name):
+        self.screen = screen
+        config:dict = ui_config[character_name]
+        self.x = int(config['x'])
+        self.y = int(config['y'])
+        self.width = int(config['width'])
+        self.height = int(config['height'])
+        self.selected = False
+        self.img = [pygame.image.load(path).convert_alpha() for path in config['img_dirs'].split('\n')]
+        for i in range(len(self.img)):
+            self.img[i] = pygame.transform.scale(self.img[i],(self.width,self.height))
+        
+    def draw(self):
+        if self.selected:
+            self.screen.blit(self.img[2],(self.x,self.y))
+            self.screen.blit(self.img[0],(self.x,self.y))
+            self.screen.blit(self.img[4],(self.x,self.y))
+        else:
+            self.screen.blit(self.img[1],(self.x,self.y))        
+            self.screen.blit(self.img[0],(self.x,self.y))
+            self.screen.blit(self.img[3],(self.x,self.y))
+
 class Upgrade_menu():
     def __init__(self,screen):
         self.screen = screen
@@ -216,12 +239,10 @@ def main_page(screen,manager,clock):
                 # next stage
                 if event.key == K_RETURN:
                     if options[selected] == start:
-                        chosen = "start"
+                        return "select_character",False
                     if options[selected] == quit:
                         pygame.quit()
                         exit()
-                    if chosen == "start":
-                        return chosen,False
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
         # - update -
@@ -237,7 +258,10 @@ def select_role(screen,manager,clock):
 
     # create title and options
     main_page_background = Main_page_background(screen)
-    options = []
+    santa = Charcter_option(screen,'santa')
+    deer = Charcter_option(screen,'deer')
+    gnome = Charcter_option(screen,'gnome')
+    options = [santa,deer,gnome]
 
     while running:
         main_page_background.draw()
@@ -256,20 +280,20 @@ def select_role(screen,manager,clock):
                 exit()
             elif event.type == pygame.KEYDOWN:
                 # select 
-                if event.key == K_UP and selected>0:
+                if event.key == K_LEFT and selected>0:
                     selected-=1
-                if event.key == K_DOWN and selected<len(options)-1:
+                if event.key == K_RIGHT and selected<len(options)-1:
                     selected+=1
 
                 # next stage
                 if event.key == K_RETURN:
-                    if options[selected] == start:
-                        chosen = "start"
-                    if options[selected] == quit:
-                        pygame.quit()
-                        exit()
-                    if chosen == "start":
-                        return chosen,False
+                    if options[selected] == santa:
+                        chosen = "santa"
+                    if options[selected] == deer:
+                        chosen = 'deer'
+                    if options[selected] == gnome:
+                        chosen = "gnome"
+                    return 'start',False
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
         # - update -

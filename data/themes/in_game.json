@@ -41,5 +41,24 @@
         {
             "text_shadow_size": "0"
         }
+    },
+    "#kill_counter":
+    {
+        "colours":
+        {
+            "text_shadow": "#000000"
+        },
+        "font":
+        {
+            "name": "UltimatePixelFont",
+            "size": "40",
+            "bold": "0",
+            "italic": "0",
+            "regular_path": "./data/fonts/UltimatePixelFont.ttf"
+        },
+        "misc":
+        {
+            "text_shadow_size": "0"
+        }
     }
 }
