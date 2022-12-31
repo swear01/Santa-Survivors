@@ -9,22 +9,20 @@ class Player(pygame.sprite.Sprite):
     MAX_WEAPONS = 6
     MAX_UPGRADES = 6
 
-    def __init__(self, pos=[0,0], visible=True,
-    atk=1, amr=0, max_hp=10, hp_r=0, speed=50, absorb_range = 50,backend=None):
+    def __init__(self, pos=[0,0],
+    atk=1, max_hp=10, hp_r=0, speed=50, absorb_range = 50):
         super().__init__()
-        self.visible = visible 
+        self.visible = True
         self.image_ori = pygame.Surface([35,35])
         self.image_ori.fill("#ffff00")
         self.image = self.image_ori.copy()
         self.rect = self.image.get_rect()
         self.pos = array(pos, dtype='float64')
-        self.backend = backend
         self.weapons: list[Weapon] = []
         self.upgrades = []
        
         self.drct = 'left'        
         self.atk = atk
-        self.amr = amr
         self.max_hp = max_hp
         self.hp = max_hp
         self.hp_r = hp_r

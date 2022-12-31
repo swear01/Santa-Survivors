@@ -259,9 +259,9 @@ def select_role(screen,manager,clock):
     # create title and options
     main_page_background = Main_page_background(screen)
     santa = Charcter_option(screen,'santa')
-    deer = Charcter_option(screen,'deer')
+    reindeer = Charcter_option(screen,'reindeer')
     gnome = Charcter_option(screen,'gnome')
-    options = [santa,deer,gnome]
+    options = [santa,reindeer,gnome]
 
     while running:
         main_page_background.draw()
@@ -289,11 +289,11 @@ def select_role(screen,manager,clock):
                 if event.key == K_RETURN:
                     if options[selected] == santa:
                         chosen = "santa"
-                    if options[selected] == deer:
-                        chosen = 'deer'
+                    if options[selected] == reindeer:
+                        chosen = 'reindeer'
                     if options[selected] == gnome:
                         chosen = "gnome"
-                    return 'start',False
+                    return 'start', chosen, False
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
         # - update -
