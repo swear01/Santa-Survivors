@@ -19,4 +19,3 @@ class Background():
                 screen.blit(self.image, (x,y))
 
         
-
