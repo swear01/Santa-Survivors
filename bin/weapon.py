@@ -8,6 +8,8 @@ from pygame.locals import *  # CONSTS
 from .config import *
 from .enemy import Enemy
 
+bullets = pygame.sprite.Group()
+
 BULLET_MAX_DIST = 400
 
 # class Weapon:
@@ -44,7 +46,7 @@ BULLET_MAX_DIST = 400
 SnowBall_basic_atk = 10
 SnowBall_basic_amt = 7
 class SnowBall(pygame.sprite.Sprite):
-    def __init__(self, player, enemies, color, level, no): # no 表示第幾個此類武器，其餘武器default no恆等於1
+    def __init__(self, player, enemies = Enemy, color ='#0000ff', level = 1, no = 1): # no 表示第幾個此類武器，其餘武器default no恆等於1
         super().__init__()
         self.image = pygame.Surface([8,8])
         self.image.fill(color)
@@ -57,6 +59,8 @@ class SnowBall(pygame.sprite.Sprite):
         self.atk = SnowBall_basic_atk * (1/2 + level/2) # 升級
         self.amt = SnowBall_basic_amt + level//3 # 升級
         self.no = no
+        self.cooldown = 1
+        self.reload = 1
 
     def update(self, dt):
         #out of screen and disappear
@@ -71,9 +75,9 @@ class SnowBall(pygame.sprite.Sprite):
         self.pos += vec * dt
         self.rect.center = self.pos
     def shoot(self, level):
-        bullets = pygame.sprite.Group()
+        # bullets = pygame.sprite.Group()
         for i in range(self.amt):
-            bullets.add(SnowBall(self.player, self.enemies, color='#0000ff', level = level, no = i + 1))
+            return SnowBall(self.player,level = level, no = i + 1)
     
 
 # 瞄準型雪球
@@ -82,7 +86,7 @@ class SnowBall(pygame.sprite.Sprite):
 AimSnowBall_basic_atk = 10
 AimSnowBall_basic_hp = 2
 class AimSnowBall(pygame.sprite.Sprite):
-    def __init__(self, player, enemies, color, level, no):
+    def __init__(self, player, enemies = Enemy, color = '#0000ff', level = 1, no = 1):
         super().__init__()
         self.image = pygame.Surface([8,8])
         self.image.fill(color)
@@ -505,3 +509,4 @@ class Seal(pygame.sprite.Sprite):
         bullets = pygame.sprite.Group()
         for i in range(Seal_amt):
             bullets.add(SnowFlake(self.player, self.enemies, color='0000ff', level = level, no = i+1))
+
