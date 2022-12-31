@@ -28,6 +28,7 @@ class Player(pygame.sprite.Sprite):
         self.weapons: list[Weapon] = []
         self.buffs = []
        
+
         self.drct = 'left'        
         self.atk_ratio = float(self.config['atk_ratio'])
         self.max_hp = float(self.config['init_health'])
@@ -57,6 +58,12 @@ class Player(pygame.sprite.Sprite):
 
         if drct == 'right':
             self.pos[0] += self.speed*dt
+    
+    def turn(self, drct):
+        if drct == 'left':
+            self.image = self.image_ori
+        if drct == 'right':
+            self.image = pygame.transform.flip (self.image_ori,False,True)
 
     def turn(self, drct):
         self.drct = drct

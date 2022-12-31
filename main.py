@@ -71,6 +71,7 @@ def gaming(selected_character):
         player.time_elapsed = time_elapsed
 
 
+
         keys = pygame.key.get_pressed()
         if keys[K_a] and not keys[K_d]:
             player.move('left', dt)

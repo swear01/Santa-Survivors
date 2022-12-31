@@ -59,3 +59,4 @@ class Background(pygame.sprite.Sprite):
             self.y3 += height / 2 - bound
             self.y4 += height / 2 - bound
             self.y5 += height / 2 - bound
+
