@@ -2,3 +2,4 @@
 __pycache__/
 tmpCode.python
 .python-version
+.DS_Store

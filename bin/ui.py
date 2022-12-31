@@ -288,11 +288,11 @@ def select_role(screen,manager,clock):
                 # next stage
                 if event.key == K_RETURN:
                     if options[selected] == santa:
-                        chosen = "santa"
+                        chosen = "Santa"
                     if options[selected] == reindeer:
-                        chosen = 'reindeer'
+                        chosen = 'Reindeer'
                     if options[selected] == gnome:
-                        chosen = "gnome"
+                        chosen = "Gnome"
                     return 'start', chosen, False
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
