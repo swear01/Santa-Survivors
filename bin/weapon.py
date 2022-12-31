@@ -262,7 +262,7 @@ class SledDog(pygame.sprite.Sprite):
 SantaBread_dist = 50 # 鬍子軌跡圓的半徑
 SantaBread_basic_angularvec = 6 # 360/SantaBread_basic_angularvec * dt 是轉一圈需要的時間
 SantaBread_basic_atk = 5
-class SantaBread(pygame.sprite.Sprite):
+class SantaBeard(pygame.sprite.Sprite):
     def __int__(self, player, enemies, color, level, no):
         super().__init__()
         self.level = level
@@ -285,7 +285,7 @@ class SantaBread(pygame.sprite.Sprite):
 
     def shoot(self, level):
         bullets = pygame.sprite.Group()
-        bullets.add(SantaBread(self.player, self.enemies, color='0000ff', level = level, no = 1))
+        bullets.add(SantaBeard(self.player, self.enemies, color='0000ff', level = level, no = 1))
 
 # 禮物
 # 從玩家的面對方發射，發射到定點會爆炸(手榴彈)，且方向僅左右
@@ -504,4 +504,4 @@ class Seal(pygame.sprite.Sprite):
     def shoot(self, level):
         bullets = pygame.sprite.Group()
         for i in range(Seal_amt):
-            bullet
+            bullets.add(SnowFlake(self.player, self.enemies, color='0000ff', level = level, no = i+1))

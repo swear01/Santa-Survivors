@@ -15,7 +15,7 @@ from bin.enemy import Spawner
 from bin.huds import Huds
 from bin.player import Player
 from bin.ui import *
-from bin.weapon import DeerAntler, Weapon
+from bin.weapon import DeerAntler
 
 clock = pygame.time.Clock()
 manager = pygame_gui.UIManager((width,height))
