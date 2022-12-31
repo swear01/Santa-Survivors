@@ -24,11 +24,10 @@ for theme_file_path in theme_paths:
 
 backend = Backend()
 
-def gaming():
+def gaming(selected_character):
     time_elapsed = 0
-    player = Player(pos=(200,200),backend=backend)
-    players = pygame.sprite.Group()
-    players.add(player)
+    player = Player(selected_character,(width/2, height/2), backend)
+    players = pygame.sprite.Group(player)
     player.weapons.append(Weapon('test', player=player, b_amt=7))
     player.weapons.append(Weapon('autoaim', player=player, b_speed=125, b_hp=2))
     r,g,b = 128,128,128 #for game over animation
@@ -97,7 +96,7 @@ def gaming():
 
 
         #update position
-        player.update(dt) 
+        player.update(time_elapsed, dt) 
         huds.update(time_elapsed,player.enemy_killed)
         for bullet in bullets:
             bullet.update(dt)
@@ -185,9 +184,9 @@ while True:
     if backend.main_page:
         next_stage,backend.main_page = main_page(screen,manager,clock)
     elif backend.select_character:
-        next_stage,backend.select_character = select_role(screen,manager,clock)
+        next_stage, backend.selected_character, backend.select_character = select_role(screen,manager,clock)
     elif backend.start_game:
-        next_stage,backend.start_game = gaming()
+        next_stage,backend.start_game = gaming(backend.selected_character)
     elif backend.game_over:
         next_stage,backend.game_over = game_over(screen,manager,clock)
 
