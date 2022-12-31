@@ -15,7 +15,7 @@ from bin.enemy import Spawner
 from bin.huds import Huds
 from bin.player import Player
 from bin.ui import *
-from bin.weapon import DeerAntler, Weapon
+from bin.weapon import DeerAntler
 
 clock = pygame.time.Clock()
 manager = pygame_gui.UIManager((width,height))
@@ -28,8 +28,6 @@ def gaming(selected_character):
     time_elapsed = 0
     player = Player(selected_character,(width/2, height/2), backend)
     players = pygame.sprite.Group(player)
-    player.weapons.append(Weapon('test', player=player, b_amt=7))
-    player.weapons.append(Weapon('autoaim', player=player, b_speed=125, b_hp=2))
     r,g,b = 128,128,128 #for game over animation
     # level_text = pygame_gui.elements.UILabel(relative_rect=pygame.Rect(5,2,50,16), text='init',
     #     manager=manager, parent_element=xp_bar,

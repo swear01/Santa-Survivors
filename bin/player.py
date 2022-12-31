@@ -4,7 +4,6 @@ import pygame
 from numpy import array
 from pygame.locals import *  # CONSTS
 
-from .weapon import Weapon
 
 player_config = ConfigParser(interpolation=ExtendedInterpolation())
 player_config.read('./data/config/player.ini')
@@ -25,7 +24,7 @@ class Player(pygame.sprite.Sprite):
         self.width, self.height = self.image.get_size()
         self.rect = self.image.get_rect()
         self.pos = array(pos, dtype='float64')
-        self.weapons: list[Weapon] = []
+        self.weapons = []
         self.buffs = []
        
         self.drct = 'left'        
