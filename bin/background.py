@@ -1,61 +1,22 @@
 import pygame
 from pygame.locals import *  # CONSTS
+from math import floor
+from numpy import array
 
-from .config import height, width
-from .player import Player
 
+class Background():
+    def __init__(self):
+        self.image = pygame.image.load('./data/backgrounds/tileable_background1.jpg').convert()
+        self.pos = array((0,0), dtype=float) #relative displacement
+        self.width, self.height = self.image.get_size()
 
-class Background(pygame.sprite.Sprite):
-    def __init__(self, screen):
-        self.map_image1 = pygame.image.load(filename = "C:\Users\user\Pictures\picture1.png") # 初始畫面
-        self.map_image2 = pygame.image.load(filename = "C:\Users\user\Pictures\picture1.png") # 初始畫面的上方畫面
-        self.map_image3 = pygame.image.load(filename = "C:\Users\user\Pictures\picture1.png") # 初始畫面的右方畫面
-        self.map_image4 = pygame.image.load(filename = "C:\Users\user\Pictures\picture1.png")  # 初始畫面的下方畫面
-        self.map_image5 = pygame.image.load(filename = "C:\Users\user\Pictures\picture1.png")  # 初始畫面的左方畫面
+    def draw(self, screen):
+        start_x = floor(self.pos[0]) % self.width - self.width
+        start_y = floor(self.pos[1]) % self.height - self.height
+        
+        for x in range(start_x, 2*self.width, self.width):
+            for y in range(start_y, 2*self.height, self.height):
+                screen.blit(self.image, (x,y))
 
-        self.screen = screen
+        
 
-        self.x1 = 0 # 初始畫面的座標
-        self.y1 = 0
-        self.x2 = 0  # 上方畫面的座標
-        self.y2 = -height
-        self.x3 = width  # 右方畫面的座標
-        self.y3 = 0
-        self.x4 = 0  # 下方畫面的座標
-        self.y4 = height
-        self.x5 = -width  # 左方畫面的座標
-        self.y5 = 0
-
-    def draw(self):
-        self.screen.blit(self.map_image1,(self.x1, self.y1))
-        self.screen.blit(self.map_image2,(self.x2, self.y2))
-        self.screen.blit(self.map_image3,(self.x3, self.y3))
-        self.screen.blit(self.map_image4,(self.x4, self.y4))
-        self.screen.blit(self.map_image5,(self.x5, self.y5))
-
-    def move(self):
-        bound = 20  # 邊界
-        if player.pos[0] <= bound:
-            self.x1 -= width/2 - bound
-            self.x2 -= width / 2 - bound
-            self.x3 -= width / 2 - bound
-            self.x4 -= width / 2 - bound
-            self.x5 -= width / 2 - bound
-        if player.pos[0] >= width - bound:
-            self.x1 += width / 2 - bound
-            self.x2 += width / 2 - bound
-            self.x3 += width / 2 - bound
-            self.x4 += width / 2 - bound
-            self.x5 += width / 2 - bound
-        if player.pos[1] <= bound:
-            self.y1 -= height / 2 - bound
-            self.y2 -= height / 2 - bound
-            self.y3 -= height / 2 - bound
-            self.y4 -= height / 2 - bound
-            self.y5 -= height / 2 - bound
-        if player.pos[1] >= height - bound:
-            self.y1 += height / 2 - bound
-            self.y2 += height / 2 - bound
-            self.y3 += height / 2 - bound
-            self.y4 += height / 2 - bound
-            self.y5 += height / 2 - bound
