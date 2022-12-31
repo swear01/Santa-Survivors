@@ -8,7 +8,10 @@ from pygame.locals import *  # CONSTS
 from .config import *
 from .enemy import Enemy
 
-BULLET_MAX_DIST = 400
+from configparser import ConfigParser, ExtendedInterpolation
+
+weapon_config = ConfigParser(interpolation=ExtendedInterpolation())
+weapon_config.read('./data/config/weapon.ini')
 
 # class Weapon:
 #     def __init__(self, name, player, 
@@ -165,10 +168,11 @@ class Sled(pygame.sprite.Sprite):
         self.enemies = enemies
 
     def update(self, dt):
-        self.x += self.vec * dt
-        if self.left >= width:
-            self.rect.topright = (0, self.player.pos[1]-Sled_height/2)
-
+        self.pos += self.vec * dt
+        if self.rect.centerx >= width + 100:
+            self.pos = (0, self.player.pos[1])
+        self.rect.center = self.pos
+        
     def shoot(self, level):
         bullets = pygame.sprite.Group()
         bullets.add(Sled(self.player, self.enemies, color='0000ff', level = level, no = 1))

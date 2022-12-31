@@ -4,14 +4,14 @@ import pygame
 from numpy import array
 from pygame.locals import *  # CONSTS
 
-from .weapon import Weapon
 
 player_config = ConfigParser(interpolation=ExtendedInterpolation())
 player_config.read('./data/config/player.ini')
 
 class Player(pygame.sprite.Sprite):
-    max_weapons = player_config['common']['max_weapons']
-    max_buffs = player_config['common']['max_buffs']
+    max_weapons = int(player_config['common']['max_weapons'])
+    max_buffs = int(player_config['common']['max_buffs'])
+    scroll = int(player_config['common']['scroll'])
 
     def __init__(self, name, pos, backend):
         super().__init__()
@@ -25,7 +25,8 @@ class Player(pygame.sprite.Sprite):
         self.width, self.height = self.image.get_size()
         self.rect = self.image.get_rect()
         self.pos = array(pos, dtype='float64')
-        self.weapons: list[Weapon] = []
+        self.movable_dir = ['left', 'right', 'down', 'up']
+        self.weapons = []
         self.buffs = []
        
 
@@ -47,16 +48,16 @@ class Player(pygame.sprite.Sprite):
 
 
     def move(self, drct, dt):
-        if drct == 'up':
+        if drct == 'up' and 'up' in self.movable_dir:
             self.pos[1] -= self.speed*dt
 
-        if drct == 'down':
+        if drct == 'down' and 'down' in self.movable_dir:
             self.pos[1] += self.speed*dt
 
-        if drct == 'left':
+        if drct == 'left' and 'left' in self.movable_dir:
             self.pos[0] -= self.speed*dt
 
-        if drct == 'right':
+        if drct == 'right' and 'right' in self.movable_dir:
             self.pos[0] += self.speed*dt
     
     def turn(self, drct):
@@ -92,6 +93,30 @@ class Player(pygame.sprite.Sprite):
 
     def get_xp_percent(self):
         return self.xp/self.xp_to_next_level(self.level)
+
+    def shift_pos(self, background, screen_xy, *shift_objs_list):
+        scroll_x, scroll_y = 0, 0
+        if self.pos[0] < self.scroll :
+            scroll_x = self.scroll - self.pos[0]
+        if self.pos[0] > screen_xy[0] - self.scroll :
+            scroll_x = screen_xy[0] - self.scroll - self.pos[0]
+        if self.pos[1] < self.scroll :
+            scroll_y = self.scroll - self.pos[1]  
+        if self.pos[1] > screen_xy[1] - self.scroll :
+            scroll_y = screen_xy[1] - self.scroll - self.pos[1] 
+
+        if scroll_x == 0 and scroll_y == 0 : return
+
+        background.pos += (scroll_x,scroll_y)
+
+        self.pos += (scroll_x,scroll_y)
+
+        for shift_objs in shift_objs_list:
+            for shift_obj in shift_objs:
+                shift_obj.pos += (scroll_x, scroll_y)
+
+        return
+
 
     @staticmethod
     def xp_to_next_level(level):

@@ -11,11 +11,12 @@ pygame.init() #place here or get error.
 screen = pygame.display.set_mode((width, height))
 
 from bin.backend import Backend
+from bin.background import Background
 from bin.enemy import Spawner
 from bin.huds import Huds
 from bin.player import Player
 from bin.ui import *
-from bin.weapon import DeerAntler, Weapon
+from bin.weapon import DeerAntler
 
 clock = pygame.time.Clock()
 manager = pygame_gui.UIManager((width,height))
@@ -23,13 +24,12 @@ for theme_file_path in theme_paths:
     manager.get_theme().load_theme(theme_file_path)
 
 backend = Backend()
+background = Background()
 
 def gaming(selected_character):
     time_elapsed = 0
     player = Player(selected_character,(width/2, height/2), backend)
     players = pygame.sprite.Group(player)
-    player.weapons.append(Weapon('test', player=player, b_amt=7))
-    player.weapons.append(Weapon('autoaim', player=player, b_speed=125, b_hp=2))
     r,g,b = 128,128,128 #for game over animation
     # level_text = pygame_gui.elements.UILabel(relative_rect=pygame.Rect(5,2,50,16), text='init',
     #     manager=manager, parent_element=xp_bar,
@@ -98,6 +98,8 @@ def gaming(selected_character):
 
         #update position
         player.update(time_elapsed, dt) 
+        player.shift_pos(background,(width, height), bullets, enemies, enemy_bullets, drops)
+        
         huds.update(time_elapsed,player.enemy_killed)
         for bullet in bullets:
             bullet.update(dt)
@@ -140,7 +142,7 @@ def gaming(selected_character):
         manager.update(dt)
 
         # draw zone
-        screen.fill('#000000')
+        background.draw(screen)
         bullets.draw(screen)
         drops.draw(screen)
         enemy_bullets.draw(screen)

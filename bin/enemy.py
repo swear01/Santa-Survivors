@@ -159,11 +159,7 @@ class Rick(Enemy):
 
     def update(self, time_elapsed, dt):
         self.pos[1] = self.player.pos[1]
-        super().update(time_elapsed, dt)
-        
-        #animations
-        self.image = self.images[int(time_elapsed) % len(self.images)]
-        return [] #for compability
+        return super().update(time_elapsed, dt)
 
     def death(self) -> Drop:
         self.player.movable_dir = ['left','right', 'up', 'down']
@@ -174,7 +170,7 @@ class Spawner():
         config = eneny_config['spawner']
         self.base_spawn_period = float(config['base_spawn_period'])
         self.timer = 0
-        self.boss_lookup = [(int(i[0]),str_to_class(i[1])) for i in eneny_config.items('spawn_lookup')]
+        self.boss_lookup = [(int(i[0]),str_to_class(i[1])) for i in eneny_config.items('boss_lookup')]
         self.next_boss_index = 0
         self.spawn_lookup = [(int(i[0]),str_to_class(i[1])) for i in eneny_config.items('spawn_lookup')] #set types
         
@@ -185,7 +181,7 @@ class Spawner():
         spawn_pos = array((random()*width, random()*height))
         while norm(spawn_pos-player.pos) < 700 : #do while
             spawn_pos = array((random()*width, random()*height), dtype=float)  
-        spawn_type = self.spawn_lookup[self.next_boss_index][1] 
+        spawn_type = self.boss_lookup[self.next_boss_index][1] 
         self.next_boss_index += 1   
         return [spawn_type(spawn_pos, player)]
                  
@@ -194,7 +190,7 @@ class Spawner():
         #need lots further modify    
         self.timer -= dt
         #spawn boss
-        if self.boss_lookup[self.next_boss_index][0] >= time_elapsed :
+        if self.boss_lookup[self.next_boss_index][0] <= time_elapsed :
             return self.spawn_boss(player)
         if self.timer > 0 : return []
         self.timer = self.spawn_period(player)
