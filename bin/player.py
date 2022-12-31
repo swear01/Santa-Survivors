@@ -1,35 +1,43 @@
+from configparser import ConfigParser, ExtendedInterpolation
+
 import pygame
-from pygame.locals import * # CONSTS
-from .weapon import Weapon
 from numpy import array
+from pygame.locals import *  # CONSTS
+
+from .weapon import Weapon
+
+player_config = ConfigParser(interpolation=ExtendedInterpolation())
+player_config.read('./data/config/player.ini')
 
 class Player(pygame.sprite.Sprite):
-    MAX_WEAPONS = 6
-    MAX_UPGRADES = 6
+    max_weapons = player_config['common']['max_weapons']
+    max_buffs = player_config['common']['max_buffs']
 
-    def __init__(self, pos=[0,0], visible=True,
-    atk=1, amr=0, max_hp=10, hp_r=0, speed=50, absorb_range = 50):
+    def __init__(self, name, pos, backend):
         super().__init__()
-        self.visible = visible 
-        self.image_ori = pygame.Surface([35,35])
-        self.image_ori.fill("#ffff00")
-        self.image = self.image_ori.copy()
+        self.name = name
+        self.backend = backend
+        self.config = player_config[self.name]
+        self.visible = True
+        self.images = [pygame.image.load(path).convert_alpha() for path in self.config['img_dirs'].split('\n')]
+        self.images = [{'left':image, 'right':pygame.transform.flip(image, True, False)} for image in self.images]
+        self.image = self.images[0]['left']
+        self.width, self.height = self.image.get_size()
         self.rect = self.image.get_rect()
         self.pos = array(pos, dtype='float64')
-
         self.weapons: list[Weapon] = []
-        self.upgrades = []
+        self.buffs = []
        
-        self.drct = 'left'
-        self.atk = atk
-        self.amr = amr
-        self.max_hp = max_hp
-        self.hp = max_hp
-        self.hp_r = hp_r
-        self.speed = speed
+
+        self.drct = 'left'        
+        self.atk_ratio = float(self.config['atk_ratio'])
+        self.max_hp = float(self.config['init_health'])
+        self.hp = self.max_hp
+        self.hp_r = float(self.config['hp_r'])
+        self.speed = float(self.config['speed'])
+        self.absorb_range = float(self.config['absorb_range'])
         self.xp = 0
         self.level = 0
-        self.absorb_range = absorb_range
         self.enemy_killed = 0
         self.gold_obtained = 0 
 
@@ -57,10 +65,18 @@ class Player(pygame.sprite.Sprite):
         if drct == 'right':
             self.image = pygame.transform.flip (self.image_ori,False,True)
 
-    def update(self, dt):
+    def turn(self, drct):
+        self.drct = drct
+
+    def update(self, time_elapsed, dt):
         if self.xp > self.xp_to_next_level(self.level):
             self.upgrade()
+        if self.hp <= 0:
+            self.backend.game_over = True
         self.rect.center = self.pos #self.rect.center is tuple 
+        self.image = self.images[int(time_elapsed+0.5) % len(self.images)][self.drct]
+
+
 
         # do this for health_bar work properly
         self.health_capacity = self.max_hp
@@ -69,7 +85,8 @@ class Player(pygame.sprite.Sprite):
     def upgrade(self):
         self.xp -= self.xp_to_next_level(self.level)
         self.level += 1
-
+        self.backend.upgrade = True
+        
     def get_health_percent(self):
         return self.hp/self.max_hp
 
@@ -78,4 +95,4 @@ class Player(pygame.sprite.Sprite):
 
     @staticmethod
     def xp_to_next_level(level):
-        return int(10*(level+1)**1.5)
+        return int(10*(level+1)**1.3)

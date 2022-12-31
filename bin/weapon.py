@@ -1,10 +1,14 @@
+from math import atan, cos, dist, inf, pi, sin
+
 import pygame
-from pygame.locals import * # CONSTS
-from math import cos, sin, pi, dist, inf, atan
 from numpy import array
 from numpy.linalg import norm
+from pygame.locals import *  # CONSTS
+
+from .config import *
 from .enemy import Enemy
-from main import width, height
+
+BULLET_MAX_DIST = 400
 
 # class Weapon:
 #     def __init__(self, name, player, 
@@ -500,4 +504,4 @@ class Seal(pygame.sprite.Sprite):
     def shoot(self, level):
         bullets = pygame.sprite.Group()
         for i in range(Seal_amt):
-            bullets.add(Seal(self.player, self.enemies, color='0000ff', level = level, no = i+1))
+            bullet

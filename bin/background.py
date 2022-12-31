@@ -1,7 +1,9 @@
 import pygame
 from pygame.locals import *  # CONSTS
-from .config import width,height
+
+from .config import height, width
 from .player import Player
+
 
 class Background(pygame.sprite.Sprite):
     def __init__(self, screen):
