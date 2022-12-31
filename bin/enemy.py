@@ -1,6 +1,6 @@
 import sys
 from abc import ABCMeta, abstractmethod
-from bisect import bisect
+from bisect import bisect_right
 from configparser import ConfigParser, ExtendedInterpolation
 from random import random, randrange
 
@@ -52,9 +52,23 @@ class Xporb(Drop):
 
 class Enemy(pygame.sprite.Sprite, metaclass=ABCMeta):
 
-    def __init__(self, player):
+    def __init__(self, name, pos, player):
         super().__init__()
         self.player = player
+        self.name = name
+        self.config:dict = eneny_config[self.name]
+        self.atk = float(self.config['atk'])
+        self.max_hp = float(self.config['max_hp'])
+        self.speed = float(self.config['speed'])
+        #self.width = int(config['width'])
+        #self.height = int(config['height'])
+        self.images = [pygame.image.load(path).convert_alpha() for path in self.config['img_dirs'].split('\n')]
+        self.image = self.images[0]
+        self.rect = self.image.get_rect()
+        self.pos = array(pos)
+        self.rect.center = self.pos
+        self.hp = self.max_hp
+        #images = [img.subsurface(img.get_bounding_rect()) for img in images] #if images have transparent skirts
 
     def if_death(self) -> Drop:
         if self.hp > 0 : return []
@@ -92,42 +106,17 @@ class Enemy(pygame.sprite.Sprite, metaclass=ABCMeta):
     
     
 class Polarbear(Enemy):
-    config:dict = eneny_config['Polarbear']
-    atk = float(config['atk'])
-    max_hp = float(config['max_hp'])
-    speed = float(config['speed'])
-    width = int(config['width'])
-    height = int(config['height'])
-    images = [pygame.image.load(path).convert_alpha() for path in config['img_dirs'].split('\n')]
-    #images = [img.subsurface(img.get_bounding_rect()) for img in images] #if images have transparent skirts
-    
-    
     def __init__(self, pos, player):
-        super().__init__(player)
-        self.image = self.images[0]
-        self.rect = self.image.get_rect()
-        self.pos = array(pos)
+        super().__init__('Polarbear', pos, player)
 
-        self.hp = self.max_hp
      
 class Snowman_ball(Enemy):
-    config:dict = eneny_config['Snowman_ball']
-    atk = float(config['atk'])
-    max_hp = float(config['max_hp'])
-    speed = float(config['speed'])
-    width = int(config['width'])
-    height = int(config['height'])
-    images = [pygame.image.load(path).convert_alpha() for path in config['img_dirs'].split('\n')][0]
-    images = pygame.transform.scale(images, (int(config['width']), int(config['height'])))
     #images = [img.subsurface(img.get_bounding_rect()) for img in images] #if images have transparent skirts
     
     
     def __init__(self, pos, player):
-        super().__init__(player)
-        self.image = self.images
-        self.rect = self.image.get_rect()
-        self.pos = array(pos)
-        self.hp = self.max_hp
+        super().__init__('Snowman_ball', pos ,player)
+        self.image = pygame.transform.scale(self.images[0], (int(self.config['width']), int(self.config['height'])))
         self.drct = self.player.pos-self.pos 
         self.drct /= norm(self.drct)   
         
@@ -137,9 +126,9 @@ class Snowman_ball(Enemy):
         return []
 
     def if_death(self) -> Drop:
-        if self.hp > 0 : return []
-        if not out_of_screen(self.pos) : return []
-        return self.death()
+        if self.hp <= 0 : return self.death()
+        if out_of_screen(self.pos) : return self.death()
+        return []
 
     def death(self) -> Drop : #return drop
         self.kill()
@@ -149,24 +138,12 @@ class Snowman_ball(Enemy):
         self.death()
         
 class Snowman(Enemy):
-    config:dict = eneny_config['Snowman']
-    atk = float(config['atk'])
-    max_hp = float(config['max_hp'])
-    speed = float(config['speed'])
-    width = int(config['width'])
-    height = int(config['height'])
-    shoot_period = float(config['shoot_period'])
-    images = [pygame.image.load(path).convert_alpha() for path in config['img_dirs'].split('\n')]
     #images = [img.subsurface(img.get_bounding_rect()) for img in images] #if images have transparent skirts
     
-    
     def __init__(self, pos, player):
-        super().__init__(player)
-        self.image = self.images[0]
-        self.rect = self.image.get_rect()
-        self.pos = array(pos)
-        self.shoot_timer = self.shoot_period
-        self.hp = self.max_hp    
+        super().__init__('Snowman',pos,player)
+        self.shoot_period = float(self.config['shoot_period'])
+        self.shoot_timer = self.shoot_period   
         
     def update(self, time_elapsed, dt):
         super().update(time_elapsed, dt)
@@ -175,25 +152,54 @@ class Snowman(Enemy):
         self.shoot_timer += self.shoot_period
         return Snowman_ball(self.pos, self.player)
         
+class Rick(Enemy):
+    def __init__(self, pos, player):
+        super().__init__('Rick', pos, player)
+        self.player.movable_dir = ['left','right']
+
+    def update(self, time_elapsed, dt):
+        self.pos[1] = self.player.pos[1]
+        super().update(time_elapsed, dt)
+        
+        #animations
+        self.image = self.images[int(time_elapsed) % len(self.images)]
+        return [] #for compability
+
+    def death(self) -> Drop:
+        self.player.movable_dir = ['left','right', 'up', 'down']
+        return super().death()
 
 class Spawner():
     def __init__(self):
         config = eneny_config['spawner']
         self.base_spawn_period = float(config['base_spawn_period'])
-        self.spawn_period_ratio = 1
         self.timer = 0
+        self.boss_lookup = [(int(i[0]),str_to_class(i[1])) for i in eneny_config.items('spawn_lookup')]
+        self.next_boss_index = 0
         self.spawn_lookup = [(int(i[0]),str_to_class(i[1])) for i in eneny_config.items('spawn_lookup')] #set types
         
-    def spawn_period(self):
+    def spawn_period(self, player):
         return self.base_spawn_period
     
+    def spawn_boss(self, player):
+        spawn_pos = array((random()*width, random()*height))
+        while norm(spawn_pos-player.pos) < 700 : #do while
+            spawn_pos = array((random()*width, random()*height), dtype=float)  
+        spawn_type = self.spawn_lookup[self.next_boss_index][1] 
+        self.next_boss_index += 1   
+        return [spawn_type(spawn_pos, player)]
+                 
+
     def spawn(self, time_elapsed, dt, player, amount):
         #need lots further modify    
         self.timer -= dt
+        #spawn boss
+        if self.boss_lookup[self.next_boss_index][0] >= time_elapsed :
+            return self.spawn_boss(player)
         if self.timer > 0 : return []
-        self.timer = self.spawn_period()
+        self.timer = self.spawn_period(player)
         
-        spawn_type = self.spawn_lookup[bisect(self.spawn_lookup, (time_elapsed,))][1]
+        spawn_type = self.spawn_lookup[bisect_right(self.spawn_lookup, (time_elapsed,))-1][1]
         enemies = []
         
         spawn_center_pos = array((random()*width, random()*height))
