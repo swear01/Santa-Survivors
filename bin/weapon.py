@@ -553,8 +553,8 @@ class CandyCane(pygame.sprite.Sprite):
         bullets.add(CandyCane(self.player, self.enemies, color='0000ff', level = level, no = 1))
 
 
-# 雪花/或雪地
-# 玩家以自己目前位置為中心設立雪地，進入雪地的怪物會持續扣血且速度變慢，玩家速度不變
+# 雪地
+# 玩家以自己目前位置為中心附近隨機位置設立雪地，進入雪地的怪物會持續扣血
 # 造成的傷害比LED還低，不然就是讓這武器不好被解鎖
 # 升級後攻擊力增加、雪地範圍變大
 SnowFlake_basic_sidelength = 50
