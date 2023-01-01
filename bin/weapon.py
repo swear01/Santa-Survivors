@@ -7,11 +7,17 @@ from pygame.locals import *  # CONSTS
 
 from .config import *
 from .enemy import Enemy
-
 from configparser import ConfigParser, ExtendedInterpolation
 
 weapon_config = ConfigParser(interpolation=ExtendedInterpolation())
 weapon_config.read('./data/config/weapon.ini')
+
+
+bullets = pygame.sprite.Group()
+BULLET_MAX_DIST = 400
+
+
+
 
 # class Weapon:
 #     def __init__(self, name, player, 
@@ -47,7 +53,7 @@ weapon_config.read('./data/config/weapon.ini')
 SnowBall_basic_atk = 10
 SnowBall_basic_amt = 7
 class SnowBall(pygame.sprite.Sprite):
-    def __init__(self, player, enemies, color, level, no): # no 表示第幾個此類武器，其餘武器default no恆等於1
+    def __init__(self, player, enemies = Enemy, color ='#0000ff', level = 1, no = 1): # no 表示第幾個此類武器，其餘武器default no恆等於1
         super().__init__()
         self.image = pygame.Surface([8,8])
         self.image.fill(color)
@@ -60,6 +66,8 @@ class SnowBall(pygame.sprite.Sprite):
         self.atk = SnowBall_basic_atk * (1/2 + level/2) # 升級
         self.amt = SnowBall_basic_amt + level//3 # 升級
         self.no = no
+        self.cooldown = 1
+        self.reload = 1
 
     def update(self, dt):
         #out of screen and disappear
@@ -74,9 +82,9 @@ class SnowBall(pygame.sprite.Sprite):
         self.pos += vec * dt
         self.rect.center = self.pos
     def shoot(self, level):
-        bullets = pygame.sprite.Group()
+        # bullets = pygame.sprite.Group()
         for i in range(self.amt):
-            bullets.add(SnowBall(self.player, self.enemies, color='#0000ff', level = level, no = i + 1))
+            return SnowBall(self.player,level = level, no = i + 1)
     
 
 # 瞄準型雪球
@@ -85,7 +93,7 @@ class SnowBall(pygame.sprite.Sprite):
 AimSnowBall_basic_atk = 10
 AimSnowBall_basic_hp = 2
 class AimSnowBall(pygame.sprite.Sprite):
-    def __init__(self, player, enemies, color, level, no):
+    def __init__(self, player, enemies = Enemy, color = '#0000ff', level = 1, no = 1):
         super().__init__()
         self.image = pygame.Surface([8,8])
         self.image.fill(color)
@@ -266,7 +274,7 @@ class SledDog(pygame.sprite.Sprite):
 SantaBread_dist = 50 # 鬍子軌跡圓的半徑
 SantaBread_basic_angularvec = 6 # 360/SantaBread_basic_angularvec * dt 是轉一圈需要的時間
 SantaBread_basic_atk = 5
-class SantaBread(pygame.sprite.Sprite):
+class SantaBeard(pygame.sprite.Sprite):
     def __int__(self, player, enemies, color, level, no):
         super().__init__()
         self.level = level
@@ -289,7 +297,7 @@ class SantaBread(pygame.sprite.Sprite):
 
     def shoot(self, level):
         bullets = pygame.sprite.Group()
-        bullets.add(SantaBread(self.player, self.enemies, color='0000ff', level = level, no = 1))
+        bullets.add(SantaBeard(self.player, self.enemies, color='0000ff', level = level, no = 1))
 
 # 禮物
 # 從玩家的面對方發射，發射到定點會爆炸(手榴彈)，且方向僅左右
@@ -508,4 +516,5 @@ class Seal(pygame.sprite.Sprite):
     def shoot(self, level):
         bullets = pygame.sprite.Group()
         for i in range(Seal_amt):
-            bullet
+            bullets.add(SnowFlake(self.player, self.enemies, color='0000ff', level = level, no = i+1))
+

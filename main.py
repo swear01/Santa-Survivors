@@ -4,7 +4,6 @@ import pygame
 import pygame_gui
 from pygame.locals import *  # CONSTS
 from pygame_gui.core import ObjectID
-
 from bin.config import *
 
 pygame.init() #place here or get error.
@@ -16,7 +15,9 @@ from bin.enemy import Spawner
 from bin.huds import Huds
 from bin.player import Player
 from bin.ui import *
-from bin.weapon import DeerAntler
+
+from bin.weapon import *
+
 
 clock = pygame.time.Clock()
 manager = pygame_gui.UIManager((width,height))
@@ -30,6 +31,8 @@ def gaming(selected_character):
     time_elapsed = 0
     player = Player(selected_character,(width/2, height/2), backend)
     players = pygame.sprite.Group(player)
+    player.weapons.append(SnowBall(player = player, level = 1))
+    # player.weapons.append(Weapon('autoaim', player=player, b_speed=125, b_hp=2))
     r,g,b = 128,128,128 #for game over animation
     # level_text = pygame_gui.elements.UILabel(relative_rect=pygame.Rect(5,2,50,16), text='init',
     #     manager=manager, parent_element=xp_bar,
@@ -39,7 +42,6 @@ def gaming(selected_character):
     bullets, enemies, enemy_bullets, drops = pygame.sprite.Group(), pygame.sprite.Group(), pygame.sprite.Group(), pygame.sprite.Group()
     spawner = Spawner()
     huds = Huds(manager, width, height, player)
-
     while True:
         for event in pygame.event.get():
             manager.process_events(event=event)
@@ -88,10 +90,13 @@ def gaming(selected_character):
             player.move('up', dt)
         
         for weapon in player.weapons:
-            weapon.reload -= 1*dt
-            if weapon.reload <= 0:
-                weapon.reload += weapon.cooldown
-                bullets.add(weapon.shoot(player.rect.center, enemies))
+            if weapon == SnowBall or weapon == AimSnowBall:
+                weapon.reload -= 1*dt
+                if weapon.reload <= 0:
+                    weapon.reload += weapon.cooldown
+                    bullets.add(weapon.shoot(level = 1))
+            else:
+                weapon.shoot(level = 1)
 
 
         enemies.add(spawner.spawn(time_elapsed, dt, player, 5))
