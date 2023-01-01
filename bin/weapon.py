@@ -10,109 +10,110 @@ from .enemy import Enemy
 
 from configparser import ConfigParser, ExtendedInterpolation
 
+from json import loads
+
 weapon_config = ConfigParser(interpolation=ExtendedInterpolation())
 weapon_config.read('./data/config/weapon.ini')
 
-# class Weapon:
-#     def __init__(self, name, player, 
-#         atk=10, reload=1, b_speed=70, b_hp=1,b_amt=1):
-#         self.name = name
-#         self.player = player
-#         self.cooldown = reload
-#         self.reload = reload
-#         self.atk = atk
-#         self.b_speed = b_speed
-#         self.b_hp = b_hp
-#         self.b_amt = b_amt
+def out_of_screen(pos):
+    return pos[0] > width + 100 or pos[0] < -100 or pos[1] > height + 100 or pos[1] < -100
 
-#     def shoot(self, pos, enemies):
-#         if self.name == 'test':
-#             bullets = pygame.sprite.Group()
-#             for i in range(self.b_amt):
-#                 angle = 2*i*pi/self.b_amt
-#                 vec = (self.b_speed*cos(angle),self.b_speed*sin(angle))
-#                 bullets.add(Bullet(pos, vec, self.player, color='#0000ff', hp=self.b_hp, atk=self.atk, kind='normal'))
-#             return bullets
 
-#         if self.name == 'autoaim':
-#             if not enemies : return []
-#             nearest_enemy = Enemy.nearest_enemy(pos, enemies)
-#             vec = nearest_enemy.pos-self.player.pos
-#             vec *= self.b_speed/norm(vec)
-#             return Bullet(pos, vec, self.player, color='#ff00ff', hp=self.b_hp, atk=self.atk, kind='autoaim')         
-
-# 基礎雪球
-# 往七個方向發射，對敵人造成一次傷害後會消失
-# 升級後攻擊力變強、數量變多
-SnowBall_basic_atk = 10
-SnowBall_basic_amt = 7
-class SnowBall(pygame.sprite.Sprite):
-    def __init__(self, player, enemies, color, level, no): # no 表示第幾個此類武器，其餘武器default no恆等於1
-        super().__init__()
-        self.image = pygame.Surface([8,8])
-        self.image.fill(color)
-        self.rect = self.image.get_rect()
+#remember, damage calculate at contact
+class Weapon:
+    def __init__(self, weapon_name, player):
+        self.name = weapon_name
+        config = weapon_config[self.name]
+        self.max_level = int(config['max_level'])
+        self.image = pygame.image.load(config['img_dir']).convert_alpha()
+        self.level = 0
         self.player = player
-        self.pos = player.pos
-        self.rect.center = player.pos
-        self.vec = 70
-        self.hp = 1 # hp is how many enemies can the bullet hit
-        self.atk = SnowBall_basic_atk * (1/2 + level/2) # 升級
-        self.amt = SnowBall_basic_amt + level//3 # 升級
-        self.no = no
+
+
+    def can_upgrade(self):
+        return self.level < self.max_level
+
+class Snowball_bullet(pygame.sprite.Sprite):
+    def __init__(self, image, pos, vec, atk, hp=1):
+        super().__init__()
+        self.hp = hp
+        self.vec = vec
+        self.pos = pos
+        self.atk = atk
+        self.image = image
+        self.rect = self.image.get_rect()
 
     def update(self, dt):
         #out of screen and disappear
-        if self.pos[0] > width + 100 or self.pos[0] < -100 or self.pos[1] > height + 100 or self.pos[1] < -100 :
-            self.kill()
-            return
-        if self.hp == 0 : 
-            self.kill()
-            return
-        angle = 2 * (self.no-1) * pi / self.amt
-        vec = (self.vec * cos(angle), self.vec * sin(angle))
-        self.pos += vec * dt
+        if out_of_screen(self.pos) or self.hp == 0 :
+            return self.kill()
+        self.pos += self.vec * dt
         self.rect.center = self.pos
-    def shoot(self, level):
+
+# 基礎雪球
+# 往多個方向發射，對敵人造成一次傷害後會消失
+# 升級後攻擊力變強、數量變多
+class Snowball(Weapon):
+    def __init__(self, player): # no 表示第幾個此類武器，其餘武器default no恆等於1
+        super().__init__('Snowball', player)
+        config = weapon_config[self.name]
+        self.image = pygame.transform.scale(self.image,(15,15))
+        self.speed = loads(config['speed'])
+        self.atk = loads(config['atk'])
+        self.bullet_amount = loads(config['bullet_amount'])
+        self.shoot_period = loads(config['shoot_period'])
+        self.shoot_timer = self.calc_shoot_period()
+
+    def calc_shoot_period(self):
+        return self.shoot_period[self.level]
+
+    def update(self, dt):
+        self.shoot_timer -= dt
+        if self.shoot_timer > 0 : return []
+        self.shoot_timer += self.calc_shoot_period()
+
+        return self.shoot()
+
+    def shoot(self):
         bullets = pygame.sprite.Group()
-        for i in range(self.amt):
-            bullets.add(SnowBall(self.player, self.enemies, color='#0000ff', level = level, no = i + 1))
+        for i in range(self.bullet_amount[self.level]):
+            angle = 2*i*pi/self.bullet_amount[self.level]
+            vec = array((self.speed[self.level]*cos(angle),self.speed[self.level]*sin(angle)))
+            bullets.add(Snowball_bullet(self.image, self.player.pos.copy(), vec, self.atk[self.level]))
+        return bullets
     
 
 # 瞄準型雪球
 # 往最近的敵人發射，預設可用兩次(hp = 2)
 # 升級後攻擊力變強、可以用更多次
-AimSnowBall_basic_atk = 10
-AimSnowBall_basic_hp = 2
-class AimSnowBall(pygame.sprite.Sprite):
-    def __init__(self, player, enemies, color, level, no):
-        super().__init__()
-        self.image = pygame.Surface([8,8])
-        self.image.fill(color)
-        self.rect = self.image.get_rect()
-        self.player = player
-        self.pos = player.pos
-        self.rect.center = player.pos
-        self.vec = 70
-        self.hp = AimSnowBall_basic_hp + level//3 # 升級
-        self.atk = AimSnowBall_basic_atk * (1/2 + level/2) # 升級
-    def update(self, dt):
-        #out of screen and disappear
-        if self.pos[0] > width + 100 or self.pos[0] < -100 or self.pos[1] > height + 100 or self.pos[1] < -100 :
-            self.kill()
-            return
-        if self.hp == 0 : 
-            self.kill()
-            return
-        nearest_enemy = Enemy.nearest_enemy(self.player.pos, self.enemies)
-        angle = atan((self.player.pos[1] - nearest_enemy.pos[1])/(self.player.pos[0] - nearest_enemy.pos[0]))
-        vec = (self.vec * cos(angle), self.vec * sin(angle))
-        self.pos += vec * dt
-        self.rect.center = self.pos
-    def shoot(self, level):
-        bullets = pygame.sprite.Group()
-        bullets.add(AimSnowBall(self.player, self.enemies, color='#0000ff', level = level, no = 1))
+class Aim_snowball(Weapon):
+    def __init__(self, player): # no 表示第幾個此類武器，其餘武器default no恆等於1
+        super().__init__('Aim_snowball', player)
+        config = weapon_config[self.name]
+        self.image = pygame.transform.scale(self.image,(25,25))
+        self.speed = loads(config['speed'])
+        self.atk = loads(config['atk'])
+        self.bullet_hp = loads(config['bullet_hp'])
+        self.shoot_period = loads(config['shoot_period'])
+        self.shoot_timer = self.calc_shoot_period()
 
+    def calc_shoot_period(self):
+        return self.shoot_period[self.level]
+
+    def update(self, dt):
+        self.shoot_timer -= dt
+        if self.shoot_timer > 0 : return []
+        self.shoot_timer += self.calc_shoot_period()
+
+        return self.shoot()
+
+    def shoot(self):
+        nearest_enemy = self.player.nearest_enemy()
+        if not nearest_enemy : return []
+        vec = nearest_enemy.pos-self.player.pos
+        vec *= self.speed[self.level]/norm(vec)
+        return Snowball_bullet(self.image, self.player.pos.copy(), 
+            vec, self.atk[self.level],self.bullet_hp[self.level])  
 
 # 鹿角(麋鹿的起始武器)
 # 防禦型武器，怪物碰到鹿角那一面會扣血，其餘部分扣玩家血
@@ -509,3 +510,5 @@ class Seal(pygame.sprite.Sprite):
         bullets = pygame.sprite.Group()
         for i in range(Seal_amt):
             bullet
+
+weapon_list = {'Snowball':Snowball, 'Aim_snowball':Aim_snowball}

@@ -2,6 +2,7 @@ from configparser import ConfigParser, ExtendedInterpolation
 
 import pygame
 from numpy import array
+from numpy.linalg import norm
 from pygame.locals import *  # CONSTS
 
 
@@ -13,10 +14,11 @@ class Player(pygame.sprite.Sprite):
     max_buffs = int(player_config['common']['max_buffs'])
     scroll = int(player_config['common']['scroll'])
 
-    def __init__(self, name, pos, backend):
+    def __init__(self, name, pos, backend, weapon_list, enemies):
         super().__init__()
         self.name = name
         self.backend = backend
+        self.enemies = enemies
         self.config = player_config[self.name]
         self.visible = True
         self.images = [pygame.image.load(path).convert_alpha() for path in self.config['img_dirs'].split('\n')]
@@ -26,7 +28,7 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.pos = array(pos, dtype='float64')
         self.movable_dir = ['left', 'right', 'down', 'up']
-        self.weapons = []
+        self.weapons = [weapon_list[self.config['init_weapon']](self)]
         self.buffs = []
        
 
@@ -46,6 +48,7 @@ class Player(pygame.sprite.Sprite):
         self.health_capacity = self.max_hp
         self.current_health = self.hp
 
+        self.calc_stats()
 
     def move(self, drct, dt):
         if drct == 'up' and 'up' in self.movable_dir:
@@ -121,3 +124,11 @@ class Player(pygame.sprite.Sprite):
     @staticmethod
     def xp_to_next_level(level):
         return int(10*(level+1)**1.3)
+
+    def calc_stats(self):
+        #TO-DO
+        pass
+
+    def nearest_enemy(self):
+        if not self.enemies : return None
+        return min(self.enemies, key=lambda enemy: norm(enemy.pos-self.pos))

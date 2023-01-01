@@ -16,7 +16,7 @@ from bin.enemy import Spawner
 from bin.huds import Huds
 from bin.player import Player
 from bin.ui import *
-from bin.weapon import DeerAntler
+from bin.weapon import weapon_list
 
 clock = pygame.time.Clock()
 manager = pygame_gui.UIManager((width,height))
@@ -28,7 +28,8 @@ background = Background()
 
 def gaming(selected_character):
     time_elapsed = 0
-    player = Player(selected_character,(width/2, height/2), backend)
+    bullets, enemies, enemy_bullets, drops = pygame.sprite.Group(), pygame.sprite.Group(), pygame.sprite.Group(), pygame.sprite.Group()
+    player = Player(selected_character,(width/2, height/2), backend, weapon_list, enemies)
     players = pygame.sprite.Group(player)
     r,g,b = 128,128,128 #for game over animation
     # level_text = pygame_gui.elements.UILabel(relative_rect=pygame.Rect(5,2,50,16), text='init',
@@ -36,7 +37,6 @@ def gaming(selected_character):
     #     anchors={'top':xp_bar, 'left':xp_bar}
     # )
 
-    bullets, enemies, enemy_bullets, drops = pygame.sprite.Group(), pygame.sprite.Group(), pygame.sprite.Group(), pygame.sprite.Group()
     spawner = Spawner()
     huds = Huds(manager, width, height, player)
 
@@ -85,12 +85,6 @@ def gaming(selected_character):
             player.move('down', dt)
         if keys[K_w] and not keys[K_s]:
             player.move('up', dt)
-        
-        for weapon in player.weapons:
-            weapon.reload -= 1*dt
-            if weapon.reload <= 0:
-                weapon.reload += weapon.cooldown
-                bullets.add(weapon.shoot(player.rect.center, enemies))
 
 
         enemies.add(spawner.spawn(time_elapsed, dt, player, 5))
@@ -101,6 +95,8 @@ def gaming(selected_character):
         player.shift_pos(background,(width, height), bullets, enemies, enemy_bullets, drops)
         
         huds.update(time_elapsed,player.enemy_killed)
+        for weapon in player.weapons:
+            bullets.add(weapon.update(dt))
         for bullet in bullets:
             bullet.update(dt)
         for enemy in enemies:

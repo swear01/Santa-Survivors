@@ -97,10 +97,6 @@ class Enemy(pygame.sprite.Sprite, metaclass=ABCMeta):
         drct /= norm(drct)
         self.pos += drct*knockback
 
-    @staticmethod
-    def nearest_enemy(player_pos, enemies):
-        if not enemies : return None
-        return min(enemies, key=lambda enemy: norm(enemy.pos-player_pos))
     
         
     
