@@ -383,54 +383,73 @@ class Mustache(Weapon):
 # 爆炸會產生一圈rect，對接觸到的怪物造成傷害
 # 升級後飛比較快(也就是更快擁有新的禮物)、攻擊力增加、攻擊範圍增加
 # 匯入圖片的時候玩家的禮物固定一兩個顏色就好
-Gift_shoot_dist = 100
-Gift_basic_vec = 40
-Gift_basic_atk = 10
-class Gift(pygame.sprite.Sprite):
-    def __int__(self, player, enemies, color, level, no):
+class Gift_bullet(pygame.sprite.Sprite):
+    def __init__(self, image, bang_image, wait, pos, vec, atk) -> None:
         super().__init__()
-        self.level = level
-        self.image_show = pygame.Surface([15, 15])# image_show是禮物的圖片
-        self.image_show.fill(color)
-        self.image_show.rect = self.image_show.get_rect()
-        self.player = player
-        if self.player.drct == 'left':
-            self.pos = self.player.rect.left
-        if self.player.drct == 'right':
-            self.pos = self.player.rect.right
-        self.vec = Gift_basic_vec * (1/2 + level/2) # 升級
-        self.atk = Gift_basic_atk * (1/2 + level/2) # 升級
-        self.hp = inf  # hp is how many enemies can the bullet hit
-        self.enemies = enemies
-        self.total_dist = 0 # 紀錄目前禮物飛到哪裡
-        self.should_explode = False
-        self.hold_time = 0 # 爆炸造成傷害的時間
-        basic_radius = 50
-        self.radius = basic_radius * (3/4 + level/4)
-        if self.should_explode:
-            self.image = pygame.Surface([self.radius * 2, self.radius * 2])
-        else:
-            self.image = pygame.Surface([0 , 0])
-        self.image.fill(color)
-        self.rect = self.image.get_rect()
+        self.image = image
+        self.bang_image = bang_image
+        self.wait = wait
+        self.rect = pygame.Rect(pos,(1,1))
+        self.pos = pos
+        self.vec = vec
+        self.hp = 0
+        self.phase = 0
+        self.timer = self.wait[self.phase]
+        self.atk = atk
 
     def update(self, dt):
-        if self.player.drct == 'left':
-            self.pos[0] -= self.vec * dt
-        if self.player.drct == 'right':
-            self.pos[0] += self.vec * dt
-        self.total_dist += self.vec * dt
-        if self.total_dist >= Gift_shoot_dist:
-            self.should_explode = True
-            self.vec = 0
-        if self.should_explode:
-            self.hold_time += dt
-        if self.hold_time >= 10 * dt:
+        self.timer -= dt
+        self.pos += self.vec*dt
+        self.rect.topleft= self.pos - array(self.image.get_size())/2
+        if self.timer > 0 : return 
+        self.phase += 1
+        #all animations
+        if self.phase == 1: #stop move
+            self.vec = array((0,0))
+            self.timer = self.wait[1]
+        if self.phase == 2: #bang
+            self.hp = float('inf')
+            self.image = self.bang_image
+            self.rect = self.image.get_rect() 
+            self.rect.topleft = self.pos - array(self.image.get_size())/2
+            return #dont reset timer
+        if self.phase == 3: #1 frame later
+            self.hp = 0
+            self.rect = pygame.Rect(self.pos - array(self.image.get_size())/2,(1,1))
+            self.timer = self.wait[3]
+        if self.phase == 4: #disappear
             self.kill()
+            return
 
-    def shoot(self, level):
-        bullets = pygame.sprite.Group()
-        bullets.add(Gift(self.player, self.enemies, color='0000ff', level = level, no = 1))
+class Gift(Weapon):
+    def __init__(self, player):
+        super().__init__('Gift', player)
+        config = weapon_config[self.name]
+        self.size = loads(config['size'])
+        bang_image = pygame.image.load(config['bang_dir']).convert_alpha()
+
+        bang_image = pygame.transform.scale2x(bang_image) #for testing
+
+        bang_image.set_alpha(int(config['bang_alpha']))
+        self.bang_images = [pygame.transform.scale(bang_image,array(bang_image.get_size())*size) for size in self.size]
+
+        self.base_range = int(config['base_range'])
+        self.atk = loads(config['atk'])
+        self.wait = loads(config['wait'])
+
+        self.shoot_period = loads(config['shoot_period'])
+        self.shoot_timer = 0
+
+    def update(self, dt):
+        self.shoot_timer -= dt
+        if self.shoot_timer >= 0 : return []
+        self.shoot_timer = self.shoot_period[self.level]
+
+        vec = array((1 if self.player.drct == 'right' else -1, 0))
+        vec = vec*self.base_range*self.size[self.level]/self.wait[0]
+
+        return Gift_bullet(self.image, self.bang_images[self.level], self.wait,
+            self.player.pos.copy(), vec, self.atk[self.level])
 
 # LED燈條
 # 會以玩家為中心甩，造成的傷害低
@@ -438,35 +457,53 @@ class Gift(pygame.sprite.Sprite):
 # 要用到mask，在主函式或許需要多拉出來寫是否enemy overlap mask
 LED_basic_angularvec = 6 # 360/angular_vec * dt 是轉一圈需要的時間
 LED_basic_atk = 5
-class LED(pygame.sprite.Sprite):
-    def __int__(self, player, enemies, color, level, no):
+class LED_Bullet(pygame.sprite.Sprite):
+    def __init__(self, image, player, speed, angular_speed, atk):
         super().__init__()
-        self.level = level
-        self.image_ori = pygame.Surface([8, 60]) # 圖片有半條是透明的，圖片中心會是玩家，燈條實際長度只有30
-        self.image_ori.fill(color)
-        self.image_ori_rect = self.image_ori.get_rect()
-        self.image_ori_rect.center = self.player.pos
-        self.image = self.image_ori.copy()
+        self.angle = 0
+        self.image = image
+        self.rect = self.image.get_rect()
         self.player = player
-        
-        self.angular_vec = LED_basic_angularvec * (1/2 + level/2) # 升級
-        self.atk = LED_basic_atk * (3/4 + level/4) # 升級
-        self.hp = inf 
-        self.enemies = enemies
-        self.total_angle = 0 # 紀錄目前LED轉到哪
-        self.mask = pygame.mask.from_surface(self.image)
+        self.hp = float('inf')
+        self.atk = atk
+        self.pos = self.player.pos.copy()
+        self.speed = speed #actually radius
+        self.angular_speed = angular_speed
 
     def update(self, dt):
-        self.total_angle += self.angular_vec * dt
-        self.total_angle %= 360
-        self.pos = self.player.pos
+        if self.angle >= 2*pi : return self.kill()
+        self.angle += self.angular_speed*dt
+        relat_pos = array((sin(self.angle),cos(self.angle)))*self.speed
+        self.pos = self.player.pos + relat_pos
         self.rect.center = self.pos
-        self.image = pygame.transform.rotate(self.image_ori, self.total_angle)
-        self.mask = pygame.mask.from_surface(self.image)
 
-    def shoot(self, level):
+class LED(Weapon):
+    def __init__(self, player):
+        super().__init__('LED', player)
+        config = weapon_config[self.name]
+        self.colors = loads(config['colors'])
+        self.shoot_period = loads(config['shoot_period']) #無縫接軌
+        self.shoot_timer = 0
+        self.bullet_amount = loads(config['bullet_amount'])
+        self.atk = loads(config['atk'])
+        self.size = int(config['size'])
+
+        self.images = []
+        for i in range(self.bullet_amount[-1]):
+            image = pygame.Surface((self.size,self.size))
+            image.fill(self.colors[i])
+            self.images.append(image)
+
+    def update(self, dt):
+        self.shoot_timer -= dt
+        if self.shoot_timer > 0 : return []
+        self.shoot_timer += self.shoot_period[self.level]
+        angular_speed = 2*pi/self.shoot_period[self.level]
         bullets = pygame.sprite.Group()
-        bullets.add(LED(self.player, self.enemies, color='0000ff', level = level, no = 1))
+        for i in range(self.bullet_amount[self.level]):
+            bullets.add(LED_Bullet(self.images[i],self.player,
+            1.6*i*self.size+50, angular_speed, self.atk[self.level]))
+        return bullets
 
 # 拐杖糖
 # 會以玩家為圓心，面對的方向為中心線，上下各甩出60度的範圍
@@ -599,4 +636,5 @@ class Seal(pygame.sprite.Sprite):
 
 weapon_list = {'Snowball':Snowball, 'Aim_snowball':Aim_snowball,
     'Deer_antler':Deer_antler, 'Sled':Sled, 'Shovel':Shovel,
-    'Sled_dog':Sled_dog, 'Mustache':Mustache}
+    'Sled_dog':Sled_dog, 'Mustache':Mustache, 'LED':LED,
+    'Gift': Gift}
