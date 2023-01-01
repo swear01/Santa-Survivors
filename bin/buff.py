@@ -4,7 +4,7 @@ from configparser import ConfigParser, ExtendedInterpolation
 
 import pygame
 
-buff_config = ConfigParser(interpolation=ExtendedInterpolation)
+buff_config = ConfigParser(interpolation=ExtendedInterpolation())
 buff_config.read('./data/config/buff.ini')
 
 class Buff():

@@ -133,7 +133,6 @@ class Deer_antler_bullet(pygame.sprite.Sprite):
         self.hp = float('inf')
 
     def update(self, dt):
-        print('update')
         self.pos = self.player.pos.copy()
         if self.player.drct == 'left':
             self.pos += (-15, -30)
