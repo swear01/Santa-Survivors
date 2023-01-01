@@ -157,64 +157,49 @@ class Deer_antler(Weapon):
         self.bullet = Deer_antler_bullet(self.image, self.player, self.atk[self.level], self.level)
         return self.bullet
 
-
-class DeerAntler(pygame.sprite.Sprite):
-    def __init__(self, player, enemies, color, level, no):
-        super().__init__()
-        self.level = level
-        self.image = pygame.Surface([20, DeerAntler_height * (3/4 + level/4)]) # 升級
-        self.image.fill(color) # 要以陰影或虛線標示攻擊範圍
-        self.rect = self.image.get_rect()
-        self.player = player
-        if self.player.drct == 'left':
-            self.pos = self.player.rect.left
-        if self.player.drct == 'right':
-            self.pos = self.player.rect.right
-        self.atk = int(DeerAntler_basic_atk * (1/2 + level/2)) #  升級
-        self.hp = inf # hp is how many enemies can the bullet hit
-        self.enemies = enemies
-
-    def update(self, dt):
-        if self.player.direction == 'left':
-            self.pos = self.player.rect.left
-        if self.player.direction == 'right':
-            self.pos = self.player.rect.right
-        self.rect.center = self.pos
-
-    def shoot(self, level):
-        bullets = pygame.sprite.Group()
-        bullets.add(DeerAntler(self.player, self.enemies, color='#0000ff', level = level, no = 1))
-
 # 雪橇(聖誕老人的起始武器)
 # 從玩家的下方，由左而右水平開過去，到螢幕邊界會重新從左邊開進去
 # 升級後雪橇速度變快、變大台、攻擊力變強
 # 升級後可以開兩台的有空再補
-Sled_height = 40 # 雪橇圖片高
-Sled_basic_vec = 40
-Sled_basic_atk = 10
-class Sled(pygame.sprite.Sprite):
-    def __int__(self, player, enemies, color, level, no):
+class Sled_bullet(pygame.sprite.Sprite):
+    def __init__(self, image, pos, vec, atk) -> None:
         super().__init__()
-        self.level = level 
-        self.image = pygame.Surface([40, Sled_height * (3/4 + level/4)]) # 升級
-        self.image.fill(color)
+        self.image = image
         self.rect = self.image.get_rect()
-        self.player = player
-        self.rect.topright = (0, self.player.pos[1]-Sled_height/2)
-        self.vec = Sled_basic_vec * (1/2 + level/2) # 升級
-        self.atk = Sled_basic_atk * (1/2 + level/2) # 升級
-        self.hp = inf  # hp is how many enemies can the bullet hit
-        self.enemies = enemies
+        self.pos = pos
+        self.vec = vec
+        self.hp = float('inf')
+        self.atk = atk
 
     def update(self, dt):
+        if out_of_screen(self.pos):
+            return self.kill()
         self.pos += self.vec * dt
-        if self.rect.centerx >= width + 100:
-            self.pos = (0, self.player.pos[1])
         self.rect.center = self.pos
+class Sled(Weapon):
+    def __init__(self, player):
+        super().__init__('Sled', player)
+        config = weapon_config[self.name]
+        self.image = pygame.transform.scale2x(self.image)
+        self.atk = loads(config['atk'])
+        self.speed = loads(config['speed'])
+        self.bullet_amount = loads(config['bullet_amount'])
+        self.shoot_period = 1.2
+        self.shoot_timer = self.shoot_period
+        self.bullets = pygame.sprite.Group()
+
+    def update(self, dt):
+        self.shoot_timer -= dt
+        if len(self.bullets) == self.bullet_amount[self.level]: return []
+        if self.shoot_timer >= 0 : return []
+        self.shoot_timer = self.shoot_period
+        sled_pos = array((-80, self.player.pos[1]))
+        sled_vec = array((self.speed[self.level], 0))
+        sled_bullet = Sled_bullet(self.image, sled_pos, sled_vec, self.atk[self.level])
+        self.bullets.add(sled_bullet)
+        return [sled_bullet]
+
         
-    def shoot(self, level):
-        bullets = pygame.sprite.Group()
-        bullets.add(Sled(self.player, self.enemies, color='0000ff', level = level, no = 1))
 
 # 鏟子(花園小精靈的起始武器)
 # 會瞄準離玩家最近的敵人
@@ -550,4 +535,4 @@ class Seal(pygame.sprite.Sprite):
             bullet
 
 weapon_list = {'Snowball':Snowball, 'Aim_snowball':Aim_snowball,
-    'Deer_antler':Deer_antler}
+    'Deer_antler':Deer_antler, 'Sled':Sled}
