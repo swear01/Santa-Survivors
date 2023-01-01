@@ -41,7 +41,7 @@ def gaming(selected_character):
 
     bullets, enemies, enemy_bullets, drops = pygame.sprite.Group(), pygame.sprite.Group(), pygame.sprite.Group(), pygame.sprite.Group()
     spawner = Spawner()
-    huds = Huds(manager, width, height, player)
+    huds = Huds(screen, manager, width, height, player)
     while True:
         for event in pygame.event.get():
             manager.process_events(event=event)
@@ -153,6 +153,7 @@ def gaming(selected_character):
         drops.draw(screen)
         enemy_bullets.draw(screen)
         enemies.draw(screen)
+        huds.show_icons()
         players.draw(screen) #player is always at the top
         manager.draw_ui(screen)
 
