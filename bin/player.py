@@ -6,6 +6,9 @@ from numpy.linalg import norm
 from pygame.locals import *  # CONSTS
 
 
+from .weapon import *
+
+
 player_config = ConfigParser(interpolation=ExtendedInterpolation())
 player_config.read('./data/config/player.ini')
 

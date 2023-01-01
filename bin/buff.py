@@ -4,13 +4,13 @@ from configparser import ConfigParser, ExtendedInterpolation
 
 import pygame
 
-buff_config = ConfigParser(interpolation=ExtendedInterpolation)
+buff_config = ConfigParser(interpolation=ExtendedInterpolation())
 buff_config.read('./data/config/buff.ini')
 
 class Buff():
     def __init__(self, buff_name):
         self.name = buff_name
-        config = buff_config[self.name]
+        config:dict = buff_config[self.name]
         self.max_level = int(config['max_level'])
         self.effect = float(config['effect'])
         self.image = pygame.image.load(config['img_dir'])

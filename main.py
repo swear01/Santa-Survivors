@@ -34,7 +34,7 @@ def gaming(selected_character):
     r,g,b = 128,128,128 #for game over animation
 
     spawner = Spawner()
-    huds = Huds(manager, width, height, player)
+    huds = Huds(screen,manager, width, height, player)
 
     while True:
         for event in pygame.event.get():
@@ -141,12 +141,13 @@ def gaming(selected_character):
         enemy_bullets.draw(screen)
         enemies.draw(screen)
         bullets.draw(screen)
+        huds.show_icons()
         players.draw(screen) #player is always at the top
         manager.draw_ui(screen)
 
         if backend.upgrade:
             dt = 0
-            upgrade = Upgrade(screen,backend)
+            upgrade = Upgrade(screen,manager,player,backend)
             upgrade.draw()
             backend.upgrade = False
             backend.upgrade_menu = True
@@ -167,7 +168,7 @@ def gaming(selected_character):
                 screen.fill((0,0,0))
                 huds.kill()
                 backend.game_over = False
-                return "game_over",False
+                return "game_over", player.enemy_killed, False
             else:
                 screen.fill((r,g,b))
         pygame.display.flip()
@@ -183,9 +184,9 @@ while True:
     elif backend.select_character:
         next_stage, backend.selected_character, backend.select_character = select_role(screen,manager,clock)
     elif backend.start_game:
-        next_stage,backend.start_game = gaming(backend.selected_character)
+        next_stage, enemy_killed,backend.start_game = gaming(backend.selected_character)
     elif backend.game_over:
-        next_stage,backend.game_over = game_over(screen,manager,clock)
+        next_stage,backend.game_over = game_over(screen,manager,clock, enemy_killed)
 
     if next_stage == 'main_page':
         backend.main_page = True
