@@ -4,7 +4,6 @@ import pygame
 import pygame_gui
 from pygame.locals import *  # CONSTS
 from pygame_gui.core import ObjectID
-
 from bin.config import *
 
 pygame.init() #place here or get error.
@@ -16,7 +15,9 @@ from bin.enemy import Spawner
 from bin.huds import Huds
 from bin.player import Player
 from bin.ui import *
+
 from bin.weapon import weapon_list
+
 
 clock = pygame.time.Clock()
 manager = pygame_gui.UIManager((width,height))
@@ -31,6 +32,8 @@ def gaming(selected_character):
     bullets, enemies, enemy_bullets, drops = pygame.sprite.Group(), pygame.sprite.Group(), pygame.sprite.Group(), pygame.sprite.Group()
     player = Player(selected_character,(width/2, height/2), backend, weapon_list, enemies)
     players = pygame.sprite.Group(player)
+    player.weapons.append(SnowBall(player = player, level = 1))
+    # player.weapons.append(Weapon('autoaim', player=player, b_speed=125, b_hp=2))
     r,g,b = 128,128,128 #for game over animation
     # level_text = pygame_gui.elements.UILabel(relative_rect=pygame.Rect(5,2,50,16), text='init',
     #     manager=manager, parent_element=xp_bar,
@@ -38,7 +41,8 @@ def gaming(selected_character):
     # )
 
     spawner = Spawner()
-    huds = Huds(screen,manager, width, height, player)
+
+    huds = Huds(screen, manager, width, height, player)
 
     while True:
         for event in pygame.event.get():
@@ -53,7 +57,8 @@ def gaming(selected_character):
                 if backend.paused:
                     backend.game_over = pause.choose(event)
                 if backend.upgrade_menu:
-                    upgrade.choose(event)
+                    selected_upgrade = upgrade.choose(event)
+                    selected_upgrade.level += 1
 
 
         dt = clock.tick(FPS)/1000

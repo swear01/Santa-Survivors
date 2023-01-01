@@ -93,7 +93,8 @@ class Huds:
         self.hp_bar.kill()
         self.xp_bar.kill()
         self.kill_counter.kill()
-        
+       
     def show_icons(self):
             for icon in self.icons:
                 icon.show()
+

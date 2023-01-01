@@ -11,7 +11,8 @@ from pygame_gui.core import ObjectID
 from .upgrade import *
 from .config import *
 from configparser import ConfigParser, ExtendedInterpolation
-import os
+from .upgrade import *
+
 
 ui_config = ConfigParser(interpolation=ExtendedInterpolation())
 ui_config.read('./data/config/ui.ini')
@@ -130,7 +131,9 @@ class Charcter_option():
             self.screen.blit(self.img[3],(self.x,self.y))
 
 class Upgrade_option():
+
     def __init__(self,screen,manager,option_name,number):
+
         self.screen = screen
         config:dict = ui_config['upgrade_option']
         self.x = int(config['x'])
@@ -139,7 +142,9 @@ class Upgrade_option():
         self.width = [int(width) for width in config['width'].split('\n')]
         self.height = [int(height) for height in config['height'].split('\n')]
         self.selected = False
+        # self.option = option
         self.img = [pygame.image.load(path).convert_alpha() for path in config['img_dirs'].split('\n')]
+
         self.option_image = pygame.image.load(weapon_config[option_name]['img_dir']).convert_alpha()
         self.option_image = pygame.transform.scale(self.option_image,(30,30))
         self.option_text = option_name
@@ -151,6 +156,7 @@ class Upgrade_option():
         #     anchors={'centerx':'centerx','top_target':self.xp_bar}, text = '00 : 00', manager=manager,
         #     object_id=ObjectID('#timer')
         #     )
+
         
     def draw(self):
         if self.selected:
@@ -166,7 +172,6 @@ class Upgrade_option():
             self.screen.blit(self.option_image,(self.x,self.y))
             self.screen.blit(self.img[4],(self.x,self.y))
 
-        
 
 class Again():
     def __init__(self,screen):
@@ -395,6 +400,7 @@ class Pause():
 
 
 class Upgrade():
+
     def __init__(self,screen, manager, player, backend):
         self.selected = 0
         self.player = player
@@ -403,6 +409,7 @@ class Upgrade():
         self.upgrade_option1 = Upgrade_option(screen, manager, result[1],1)
         self.upgrade_option2 = Upgrade_option(screen, manager, result[2], 2)
         self.upgrade_option3 = Upgrade_option(screen, manager, result[3],3)
+
         self.backend = backend
         self.options = [self.upgrade_option0,self.upgrade_option1,self.upgrade_option2,self.upgrade_option3]
 
@@ -414,9 +421,11 @@ class Upgrade():
         if event.key == K_RETURN:
             for option in self.options:
                 del option
+
             self.backend.upgrade_menu = False
             self.player.weapons += [weapon_list[self.options[self.selected].option_name](self.player)]
            
+
     def show(self):
         for option in self.options:
             if self.options[self.selected] == option:

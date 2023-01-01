@@ -3,6 +3,7 @@ from .weapon import *
 from .buff import *
 import random
 
+
 def upgrade(all_weapons,all_buffs,selected_weapons,selected_buffs):
     non_selecteds = []
     selecteds = []
@@ -29,3 +30,4 @@ def upgrade(all_weapons,all_buffs,selected_weapons,selected_buffs):
         if weights[n] not in result:
             result += [weights[n]]
     return result
+
