@@ -119,8 +119,6 @@ class Aim_snowball(Weapon):
 # 鹿角(麋鹿的起始武器)
 # 防禦型武器，怪物碰到鹿角那一面會扣血，其餘部分扣玩家血
 # 升級後鹿角會變大、攻擊力變強
-DeerAntler_height = 52.5 # 鹿的圖片高 * 1.5
-DeerAntler_basic_atk = 10
 
 class Deer_antler_bullet(pygame.sprite.Sprite):
     def __init__(self, image, player, atk, level) -> None:
@@ -134,7 +132,6 @@ class Deer_antler_bullet(pygame.sprite.Sprite):
         self.hp = float('inf')
 
     def update(self, dt):
-        print('update')
         self.pos = self.player.pos.copy()
         if self.player.drct == 'left':
             self.pos += (-15, -30)
@@ -156,6 +153,51 @@ class Deer_antler(Weapon):
         if self.level == self.bullet.level : return []
         self.bullet.kill()
         self.bullet = Deer_antler_bullet(self.image, self.player, self.atk[self.level], self.level)
+        return self.bullet
+
+#雪屋 防護罩形式，沒血時會隱藏
+class Igloo_shelter(pygame.sprite.Sprite):
+    def __init__(self, image, player, atk, max_hp, regeneration_time, level) -> None:
+        super().__init__()
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.player = player
+        self.max_hp = max_hp
+        self.hp = self.max_hp
+        self.level = level
+        self.pos = self.player.pos
+        self.atk = atk
+        self.regeneration_time = regeneration_time
+        self.timer = self.regeneration_time
+
+    def update(self, dt):
+        self.pos = self.player.pos.copy()
+        self.rect.center = self.pos
+        alpha = 255*(self.hp/self.max_hp)
+        self.image.set_alpha(alpha)
+        if self.hp == self.max_hp : return #no timer
+        self.timer -= dt
+        if self.timer > 0 : return
+        self.timer += self.regeneration_time
+        self.hp += 1
+
+
+
+class Igloo(Weapon):
+    def __init__(self, player):
+        super().__init__('Igloo', player)
+        size = array(self.player.image.get_size()) + array((10,10))
+        self.image = pygame.transform.scale(self.image,size)
+        config = weapon_config[self.name]
+        self.atk = int(config['atk'])
+        self.max_hp = loads(config['max_hp'])
+        self.regeneration_time = loads(config['regeneration_time'])
+        self.bullet = Igloo_shelter(self.image, self.player, self.atk, self.max_hp[self.level], self.regeneration_time[self.level], 1) #let it reset in update
+
+    def update(self, dt):
+        if self.level == self.bullet.level : return []
+        self.bullet.kill()
+        self.bullet = Igloo_shelter(self.image, self.player, self.atk, self.max_hp[self.level], self.regeneration_time[self.level], self.level)
         return self.bullet
 
 # 雪橇(聖誕老人的起始武器)
@@ -611,58 +653,9 @@ class Snowflake(Weapon):
 
         return SnowFlake_flake(self.images[self.level],array((x,y)),self.atk[self.level],self.exist_time[self.level])
 
-#實作成怪物
-# # 海豹
-# # 直線型迴力鏢，從玩家的左上、右上、右下、左下斜45度角出發，走過一定距離後，返回玩家身邊。
-# # 升級後移動速度變快，攻擊力變強
-# Seal_basic_vec = 30
-# Seal_basic_atk = 15
-# Seal_amt = 4
-# Seal_move_time = 100 # 單位是dt
-# class Seal(pygame.sprite.Sprite):
-#     def __int__(self, player, enemies, color, level, no):
-#         super().__init__()
-#         self.level = level
-#         self.no = no
-#         self.image_ori = pygame.Surface([20, 20])
-#         self.image_ori.fill(color)
-#         if no == 1 or no == 4:
-#             self.image = self.image_ori.copy()
-#         if no == 2 or no == 3:
-#             self.image = pygame.transform.flip(self.image_ori, True, False)
-#         self.rect = self.image.get_rect()
-#         self.pos = self.player.pos
-#         self.player = player
-#         self.angle = 45 * no # 出發的角度
-#         self.vec = Seal_basic_vec * (3/4 + level/4) # 升級
-#         self.atk = Seal_basic_atk * (1/2 + level/2) # 升級
-#         self.hp = inf  # hp is how many enemies can the bullet hit
-#         self.enemies = enemies
-#         self.should_return = False
-#         self.move_time = 0
-
-#     def update(self, dt):
-#         if self.move_time >= Seal_move_time and not self.should_return:
-#             self.should_return = True
-#             self.move_time = 0
-#         if not self.should_return:
-#             self.pos -= (self.vec * cos(self.angle) * dt, self.vec * sin(self.angle) * dt)
-#             self.rect.center = self.pos
-#             self.move_time += 1
-#         if self.should_return and self.move_time < Seal_move_time:
-#             self.pos += ((self.player.pos[0] - self.pos[0])/Seal_move_time, (self.player.pos[1] - self.pos[1])/Seal_move_time)
-#             self.move_time += 1
-#         if self.should_return and self.move_time >= Seal_move_time:
-#             self.pos = self.player.pos
-#             self.move_time = 0
-#         self.rect.center = self.pos
-
-#     def shoot(self, level):
-#         bullets = pygame.sprite.Group()
-#         for i in range(Seal_amt):
-#             bullet
 
 weapon_list = {'Snowball':Snowball, 'Aim_snowball':Aim_snowball,
     'Deer_antler':Deer_antler, 'Sled':Sled, 'Shovel':Shovel,
     'Sled_dog':Sled_dog, 'Mustache':Mustache, 'LED':LED,
-    'Gift': Gift, 'Snowflake':Snowflake, 'Candycane':Candycane}
+    'Gift': Gift, 'Snowflake':Snowflake, 'Candycane':Candycane,
+    'Igloo': Igloo}
