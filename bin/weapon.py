@@ -9,8 +9,8 @@ from .config import *
 from .enemy import Enemy
 from configparser import ConfigParser, ExtendedInterpolation
 
-weapon_config = ConfigParser(interpolation=ExtendedInterpolation())
-weapon_config.read('./data/config/weapon.ini')
+# weapon_config = ConfigParser(interpolation=ExtendedInterpolation())
+# weapon_config.read('./data/config/weapon.ini')
 
 
 bullets = pygame.sprite.Group()
