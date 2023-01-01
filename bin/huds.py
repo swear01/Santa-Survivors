@@ -93,11 +93,8 @@ class Huds:
         self.hp_bar.kill()
         self.xp_bar.kill()
         self.kill_counter.kill()
-        self.kill_counter = pygame_gui.elements.UILabel(
-            relative_rect=pygame.Rect(100,400,int(config['kill_counter']['width']),int(config['kill_counter']['height'])),
-             text = f'kills:{self.player.enemy_killed}', manager=self.manager,
-            object_id=ObjectID('#kill_counter')
-            )
+       
     def show_icons(self):
             for icon in self.icons:
                 icon.show()
+

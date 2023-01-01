@@ -42,7 +42,7 @@ class Xporb(Drop):
         if norm(self.pos-self.player.pos) < self.player.absorb_range :
             dist = norm(self.pos-self.player.pos)
             drct = (self.player.pos-self.pos)/dist
-            self.pos += 3000/dist*drct*dt
+            self.pos += 10000/dist*drct*dt
         self.rect.center = self.pos
         
     def absorbed(self):
@@ -97,10 +97,6 @@ class Enemy(pygame.sprite.Sprite, metaclass=ABCMeta):
         drct /= norm(drct)
         self.pos += drct*knockback
 
-    @staticmethod
-    def nearest_enemy(player_pos, enemies):
-        if not enemies : return None
-        return min(enemies, key=lambda enemy: norm(enemy.pos-player_pos))
     
         
     

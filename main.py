@@ -16,7 +16,7 @@ from bin.huds import Huds
 from bin.player import Player
 from bin.ui import *
 
-from bin.weapon import *
+from bin.weapon import weapon_list
 
 
 clock = pygame.time.Clock()
@@ -29,7 +29,8 @@ background = Background()
 
 def gaming(selected_character):
     time_elapsed = 0
-    player = Player(selected_character,(width/2, height/2), backend)
+    bullets, enemies, enemy_bullets, drops = pygame.sprite.Group(), pygame.sprite.Group(), pygame.sprite.Group(), pygame.sprite.Group()
+    player = Player(selected_character,(width/2, height/2), backend, weapon_list, enemies)
     players = pygame.sprite.Group(player)
     player.weapons.append(SnowBall(player = player, level = 1))
     # player.weapons.append(Weapon('autoaim', player=player, b_speed=125, b_hp=2))
@@ -39,9 +40,10 @@ def gaming(selected_character):
     #     anchors={'top':xp_bar, 'left':xp_bar}
     # )
 
-    bullets, enemies, enemy_bullets, drops = pygame.sprite.Group(), pygame.sprite.Group(), pygame.sprite.Group(), pygame.sprite.Group()
     spawner = Spawner()
+
     huds = Huds(screen, manager, width, height, player)
+
     while True:
         for event in pygame.event.get():
             manager.process_events(event=event)
@@ -88,15 +90,6 @@ def gaming(selected_character):
             player.move('down', dt)
         if keys[K_w] and not keys[K_s]:
             player.move('up', dt)
-        
-        for weapon in player.weapons:
-            if weapon == SnowBall or weapon == AimSnowBall:
-                weapon.reload -= 1*dt
-                if weapon.reload <= 0:
-                    weapon.reload += weapon.cooldown
-                    bullets.add(weapon.shoot(level = 1))
-            else:
-                weapon.shoot(level = 1)
 
 
         enemies.add(spawner.spawn(time_elapsed, dt, player, 5))
@@ -107,6 +100,8 @@ def gaming(selected_character):
         player.shift_pos(background,(width, height), bullets, enemies, enemy_bullets, drops)
         
         huds.update(time_elapsed,player.enemy_killed)
+        for weapon in player.weapons:
+            bullets.add(weapon.update(dt))
         for bullet in bullets:
             bullet.update(dt)
         for enemy in enemies:
@@ -123,19 +118,18 @@ def gaming(selected_character):
         b_e_collide = pygame.sprite.groupcollide(bullets, enemies, False, False)
 
         for bullet, hit_enemies in b_e_collide.items():
-            for enemy in hit_enemies: #bullet will have at least 1 health
+            for enemy in hit_enemies: #bullet may have 0 hp
+                if bullet.hp <= 0 : break
                 if enemy.hp == 0 :              
                     continue
                 enemy.hp -= bullet.atk
                 bullet.hp -= 1 
 
-
-                if bullet.hp <= 0 : break
-
         enemies_atked = pygame.sprite.spritecollide(player, enemies, dokill=False)
         enemies_atked += pygame.sprite.spritecollide(player, enemy_bullets, dokill=False)
 
         for enemy in enemies_atked:
+            if not pygame.sprite.collide_mask(player, enemy) : continue
             player.hp -= enemy.atk
             enemy.avoid()
             
@@ -149,17 +143,17 @@ def gaming(selected_character):
 
         # draw zone
         background.draw(screen)
-        bullets.draw(screen)
         drops.draw(screen)
         enemy_bullets.draw(screen)
         enemies.draw(screen)
+        bullets.draw(screen)
         huds.show_icons()
         players.draw(screen) #player is always at the top
         manager.draw_ui(screen)
 
         if backend.upgrade:
             dt = 0
-            upgrade = Upgrade(screen,backend)#,[],[],[],[]
+            upgrade = Upgrade(screen,manager,player,backend)
             upgrade.draw()
             backend.upgrade = False
             backend.upgrade_menu = True
@@ -180,7 +174,7 @@ def gaming(selected_character):
                 screen.fill((0,0,0))
                 huds.kill()
                 backend.game_over = False
-                return "game_over",False
+                return "game_over", player.enemy_killed, False
             else:
                 screen.fill((r,g,b))
         pygame.display.flip()
@@ -196,9 +190,9 @@ while True:
     elif backend.select_character:
         next_stage, backend.selected_character, backend.select_character = select_role(screen,manager,clock)
     elif backend.start_game:
-        next_stage,backend.start_game = gaming(backend.selected_character)
+        next_stage, enemy_killed,backend.start_game = gaming(backend.selected_character)
     elif backend.game_over:
-        next_stage,backend.game_over = game_over(screen,manager,clock)
+        next_stage,backend.game_over = game_over(screen,manager,clock, enemy_killed)
 
     if next_stage == 'main_page':
         backend.main_page = True
