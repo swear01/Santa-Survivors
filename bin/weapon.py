@@ -120,6 +120,44 @@ class Aim_snowball(Weapon):
 # 升級後鹿角會變大、攻擊力變強
 DeerAntler_height = 52.5 # 鹿的圖片高 * 1.5
 DeerAntler_basic_atk = 10
+
+class Deer_antler_bullet(pygame.sprite.Sprite):
+    def __init__(self, image, player, atk, level) -> None:
+        super().__init__()
+        self.images = [image, pygame.transform.flip(image, True, False)]
+        self.image = self.images[0]
+        self.rect = self.image.get_rect()
+        self.player = player
+        self.atk = atk
+        self.level = level
+        self.hp = float('inf')
+
+    def update(self, dt):
+        print('update')
+        self.pos = self.player.pos.copy()
+        if self.player.drct == 'left':
+            self.pos += (-15, -30)
+            self.image = self.images[1]
+        if self.player.drct == 'right':
+            self.pos += (15,-30)
+            self.image = self.images[0]
+        self.rect.center = self.pos
+
+
+class Deer_antler(Weapon):
+    def __init__(self, player):
+        super().__init__('Deer_antler', player)
+        config = weapon_config[self.name]
+        self.atk = loads(config['atk'])
+        self.bullet = Deer_antler_bullet(self.image, self.player, self.atk[self.level], 1) #let it reset in update
+
+    def update(self, dt):
+        if self.level == self.bullet.level : return []
+        self.bullet.kill()
+        self.bullet = Deer_antler_bullet(self.image, self.player, self.atk[self.level], self.level)
+        return self.bullet
+
+
 class DeerAntler(pygame.sprite.Sprite):
     def __init__(self, player, enemies, color, level, no):
         super().__init__()
@@ -511,4 +549,5 @@ class Seal(pygame.sprite.Sprite):
         for i in range(Seal_amt):
             bullet
 
-weapon_list = {'Snowball':Snowball, 'Aim_snowball':Aim_snowball}
+weapon_list = {'Snowball':Snowball, 'Aim_snowball':Aim_snowball,
+    'Deer_antler':Deer_antler}
