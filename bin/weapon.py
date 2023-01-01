@@ -336,35 +336,47 @@ class Sled_dog(Weapon):
 
 # 聖誕老人的鬍子
 # 鬍子定軌跡的在玩家上下方移動
-# 一定時間會繞720度(玩家沒有移動的話軌跡呈兩個在玩家位置相切的圓形，或8字形)，迴力鏢
-# 升級後飛比較快、攻擊力增加
+# 上下繞8-curve
 SantaBread_dist = 50 # 鬍子軌跡圓的半徑
 SantaBread_basic_angularvec = 6 # 360/SantaBread_basic_angularvec * dt 是轉一圈需要的時間
 SantaBread_basic_atk = 5
-class SantaBread(pygame.sprite.Sprite):
-    def __int__(self, player, enemies, color, level, no):
+class Mustache_Bullet(pygame.sprite.Sprite):
+    def __init__(self, image, player, speed, angular_speed, hp, atk):
         super().__init__()
-        self.level = level
-        self.image = pygame.Surface([15, 15])
-        self.image.fill(color)
+        self.angle = 0
+        self.image = image
         self.rect = self.image.get_rect()
-        self.pos = self.player.pos
         self.player = player
-
-        self.angular_vec = SantaBread_basic_angularvec * (1/2 + level/2) # 升級
-        self.atk = SantaBread_basic_atk * (1/2 + level/2) # 升級
-        self.hp = inf  # hp is how many enemies can the bullet hit
-        self.enemies = enemies
-        self.total_angle = 0 # 紀錄目前鬍子轉到哪 
+        self.hp = hp
+        self.atk = atk
+        self.pos = self.player.pos.copy()
+        self.speed = speed #actually size
+        self.angular_speed = angular_speed
 
     def update(self, dt):
-        self.total_angle += self.angular_vec * dt
-        self.total_angle %= 720
-        self.pos = (self.player[0] - SantaBread_dist * cos(self.total_angle/2) * sin(self.total_angle/2), self.player[1] - SantaBread_dist * sin(self.total_angle/2)**2)
+        if self.angle >= 2*pi : return self.kill()
+        self.angle += self.angular_speed*dt
+        relat_pos = array((0.5*sin(2*self.angle),cos(self.angle)))*self.speed
+        self.pos = self.player.pos + relat_pos
+        self.rect.center = self.pos
 
-    def shoot(self, level):
-        bullets = pygame.sprite.Group()
-        bullets.add(SantaBread(self.player, self.enemies, color='0000ff', level = level, no = 1))
+class Mustache(Weapon):
+    def __init__(self, player):
+        super().__init__('Mustache', player)
+        config = weapon_config[self.name]
+        self.shoot_period = float(config['shoot_period']) #無縫接軌
+        self.shoot_timer = 0
+        self.speed = loads(config['speed'])
+        self.atk = loads(config['atk'])
+        self.hp = int(config['hp'])
+
+    def update(self, dt):
+        self.shoot_timer -= dt
+        if self.shoot_timer > 0 : return []
+        self.shoot_timer += self.shoot_period
+        angular_speed = 2*pi/self.shoot_period
+        return Mustache_Bullet(self.image,self.player,self.speed[self.level],
+            angular_speed, self.hp, self.atk[self.level])
 
 # 禮物
 # 從玩家的面對方發射，發射到定點會爆炸(手榴彈)，且方向僅左右
@@ -587,4 +599,4 @@ class Seal(pygame.sprite.Sprite):
 
 weapon_list = {'Snowball':Snowball, 'Aim_snowball':Aim_snowball,
     'Deer_antler':Deer_antler, 'Sled':Sled, 'Shovel':Shovel,
-    'Sled_dog':Sled_dog}
+    'Sled_dog':Sled_dog, 'Mustache':Mustache}
