@@ -32,10 +32,6 @@ def gaming(selected_character):
     player = Player(selected_character,(width/2, height/2), backend, weapon_list, enemies)
     players = pygame.sprite.Group(player)
     r,g,b = 128,128,128 #for game over animation
-    # level_text = pygame_gui.elements.UILabel(relative_rect=pygame.Rect(5,2,50,16), text='init',
-    #     manager=manager, parent_element=xp_bar,
-    #     anchors={'top':xp_bar, 'left':xp_bar}
-    # )
 
     spawner = Spawner()
     huds = Huds(screen,manager, width, height, player)

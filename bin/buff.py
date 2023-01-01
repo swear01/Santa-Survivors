@@ -22,4 +22,4 @@ class Buff():
 
 available_names = buff_config.sections()
 
-available_buffs = [Buff(name) for name in available_names]
+available_buffs = {name:Buff(name) for name in available_names}

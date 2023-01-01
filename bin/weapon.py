@@ -1,7 +1,7 @@
 from math import atan2, cos, dist, inf, pi, sin, degrees
 
 import pygame
-from numpy import array
+from numpy import array, sqrt
 from numpy.linalg import norm
 from pygame.locals import *  # CONSTS
 
@@ -11,6 +11,7 @@ from configparser import ConfigParser, ExtendedInterpolation
 
 
 from json import loads
+from random import random
 
 weapon_config = ConfigParser(interpolation=ExtendedInterpolation())
 weapon_config.read('./data/config/weapon.ini')
@@ -126,8 +127,6 @@ class Aim_snowball(Weapon):
 # 鹿角(麋鹿的起始武器)
 # 防禦型武器，怪物碰到鹿角那一面會扣血，其餘部分扣玩家血
 # 升級後鹿角會變大、攻擊力變強
-DeerAntler_height = 52.5 # 鹿的圖片高 * 1.5
-DeerAntler_basic_atk = 10
 
 class Deer_antler_bullet(pygame.sprite.Sprite):
     def __init__(self, image, player, atk, level) -> None:
@@ -162,6 +161,51 @@ class Deer_antler(Weapon):
         if self.level == self.bullet.level : return []
         self.bullet.kill()
         self.bullet = Deer_antler_bullet(self.image, self.player, self.atk[self.level], self.level)
+        return self.bullet
+
+#雪屋 防護罩形式，沒血時會隱藏
+class Igloo_shelter(pygame.sprite.Sprite):
+    def __init__(self, image, player, atk, max_hp, regeneration_time, level) -> None:
+        super().__init__()
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.player = player
+        self.max_hp = max_hp
+        self.hp = self.max_hp
+        self.level = level
+        self.pos = self.player.pos
+        self.atk = atk
+        self.regeneration_time = regeneration_time
+        self.timer = self.regeneration_time
+
+    def update(self, dt):
+        self.pos = self.player.pos.copy()
+        self.rect.center = self.pos
+        alpha = 255*(self.hp/self.max_hp)
+        self.image.set_alpha(alpha)
+        if self.hp == self.max_hp : return #no timer
+        self.timer -= dt
+        if self.timer > 0 : return
+        self.timer += self.regeneration_time
+        self.hp += 1
+
+
+
+class Igloo(Weapon):
+    def __init__(self, player):
+        super().__init__('Igloo', player)
+        size = array(self.player.image.get_size()) + array((10,10))
+        self.image = pygame.transform.scale(self.image,size)
+        config = weapon_config[self.name]
+        self.atk = int(config['atk'])
+        self.max_hp = loads(config['max_hp'])
+        self.regeneration_time = loads(config['regeneration_time'])
+        self.bullet = Igloo_shelter(self.image, self.player, self.atk, self.max_hp[self.level], self.regeneration_time[self.level], 1) #let it reset in update
+
+    def update(self, dt):
+        if self.level == self.bullet.level : return []
+        self.bullet.kill()
+        self.bullet = Igloo_shelter(self.image, self.player, self.atk, self.max_hp[self.level], self.regeneration_time[self.level], self.level)
         return self.bullet
 
 # 雪橇(聖誕老人的起始武器)
@@ -343,89 +387,121 @@ class Sled_dog(Weapon):
 
 # 聖誕老人的鬍子
 # 鬍子定軌跡的在玩家上下方移動
-# 一定時間會繞720度(玩家沒有移動的話軌跡呈兩個在玩家位置相切的圓形，或8字形)，迴力鏢
-# 升級後飛比較快、攻擊力增加
+# 上下繞8-curve
 SantaBread_dist = 50 # 鬍子軌跡圓的半徑
 SantaBread_basic_angularvec = 6 # 360/SantaBread_basic_angularvec * dt 是轉一圈需要的時間
 SantaBread_basic_atk = 5
-class SantaBeard(pygame.sprite.Sprite):
-    def __int__(self, player, enemies, color, level, no):
-        super().__init__()
-        self.level = level
-        self.image = pygame.Surface([15, 15])
-        self.image.fill(color)
-        self.rect = self.image.get_rect()
-        self.pos = self.player.pos
-        self.player = player
 
-        self.angular_vec = SantaBread_basic_angularvec * (1/2 + level/2) # 升級
-        self.atk = SantaBread_basic_atk * (1/2 + level/2) # 升級
-        self.hp = inf  # hp is how many enemies can the bullet hit
-        self.enemies = enemies
-        self.total_angle = 0 # 紀錄目前鬍子轉到哪 
+class Mustache_Bullet(pygame.sprite.Sprite):
+    def __init__(self, image, player, speed, angular_speed, hp, atk):
+        super().__init__()
+        self.angle = 0
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.player = player
+        self.hp = hp
+        self.atk = atk
+        self.pos = self.player.pos.copy()
+        self.speed = speed #actually size
+        self.angular_speed = angular_speed
 
     def update(self, dt):
-        self.total_angle += self.angular_vec * dt
-        self.total_angle %= 720
-        self.pos = (self.player[0] - SantaBread_dist * cos(self.total_angle/2) * sin(self.total_angle/2), self.player[1] - SantaBread_dist * sin(self.total_angle/2)**2)
+        if self.angle >= 2*pi : return self.kill()
+        self.angle += self.angular_speed*dt
+        relat_pos = array((0.5*sin(2*self.angle),cos(self.angle)))*self.speed
+        self.pos = self.player.pos + relat_pos
+        self.rect.center = self.pos
 
-    def shoot(self, level):
-        bullets = pygame.sprite.Group()
-        bullets.add(SantaBeard(self.player, self.enemies, color='0000ff', level = level, no = 1))
+class Mustache(Weapon):
+    def __init__(self, player):
+        super().__init__('Mustache', player)
+        config = weapon_config[self.name]
+        self.shoot_period = float(config['shoot_period']) #無縫接軌
+        self.shoot_timer = 0
+        self.speed = loads(config['speed'])
+        self.atk = loads(config['atk'])
+        self.hp = int(config['hp'])
+
+    def update(self, dt):
+        self.shoot_timer -= dt
+        if self.shoot_timer > 0 : return []
+        self.shoot_timer += self.shoot_period
+        angular_speed = 2*pi/self.shoot_period
+        return Mustache_Bullet(self.image,self.player,self.speed[self.level],
+            angular_speed, self.hp, self.atk[self.level])
 
 # 禮物
 # 從玩家的面對方發射，發射到定點會爆炸(手榴彈)，且方向僅左右
 # 爆炸會產生一圈rect，對接觸到的怪物造成傷害
 # 升級後飛比較快(也就是更快擁有新的禮物)、攻擊力增加、攻擊範圍增加
 # 匯入圖片的時候玩家的禮物固定一兩個顏色就好
-Gift_shoot_dist = 100
-Gift_basic_vec = 40
-Gift_basic_atk = 10
-class Gift(pygame.sprite.Sprite):
-    def __int__(self, player, enemies, color, level, no):
+class Gift_bullet(pygame.sprite.Sprite):
+    def __init__(self, image, bang_image, wait, pos, vec, atk) -> None:
         super().__init__()
-        self.level = level
-        self.image_show = pygame.Surface([15, 15])# image_show是禮物的圖片
-        self.image_show.fill(color)
-        self.image_show.rect = self.image_show.get_rect()
-        self.player = player
-        if self.player.drct == 'left':
-            self.pos = self.player.rect.left
-        if self.player.drct == 'right':
-            self.pos = self.player.rect.right
-        self.vec = Gift_basic_vec * (1/2 + level/2) # 升級
-        self.atk = Gift_basic_atk * (1/2 + level/2) # 升級
-        self.hp = inf  # hp is how many enemies can the bullet hit
-        self.enemies = enemies
-        self.total_dist = 0 # 紀錄目前禮物飛到哪裡
-        self.should_explode = False
-        self.hold_time = 0 # 爆炸造成傷害的時間
-        basic_radius = 50
-        self.radius = basic_radius * (3/4 + level/4)
-        if self.should_explode:
-            self.image = pygame.Surface([self.radius * 2, self.radius * 2])
-        else:
-            self.image = pygame.Surface([0 , 0])
-        self.image.fill(color)
-        self.rect = self.image.get_rect()
+        self.image = image
+        self.bang_image = bang_image
+        self.wait = wait
+        self.rect = pygame.Rect(pos,(1,1))
+        self.pos = pos
+        self.vec = vec
+        self.hp = 0
+        self.phase = 0
+        self.timer = self.wait[self.phase]
+        self.atk = atk
 
     def update(self, dt):
-        if self.player.drct == 'left':
-            self.pos[0] -= self.vec * dt
-        if self.player.drct == 'right':
-            self.pos[0] += self.vec * dt
-        self.total_dist += self.vec * dt
-        if self.total_dist >= Gift_shoot_dist:
-            self.should_explode = True
-            self.vec = 0
-        if self.should_explode:
-            self.hold_time += dt
-        if self.hold_time >= 10 * dt:
+        self.timer -= dt
+        self.pos += self.vec*dt
+        self.rect.topleft= self.pos - array(self.image.get_size())/2
+        if self.timer > 0 : return 
+        self.phase += 1
+        #all animations
+        if self.phase == 1: #stop move
+            self.vec = array((0,0))
+            self.timer = self.wait[1]
+        if self.phase == 2: #bang
+            self.hp = float('inf')
+            self.image = self.bang_image
+            self.rect = self.image.get_rect() 
+            self.rect.topleft = self.pos - array(self.image.get_size())/2
+            return #dont reset timer
+        if self.phase == 3: #1 frame later
+            self.hp = 0
+            self.rect = pygame.Rect(self.pos - array(self.image.get_size())/2,(1,1))
+            self.timer = self.wait[3]
+        if self.phase == 4: #disappear
             self.kill()
+            return
 
-    def shoot(self, level):
-        bullets = pygame.sprite.Group()
-        bullets.add(Gift(self.player, self.enemies, color='0000ff', level = level, no = 1))
+class Gift(Weapon):
+    def __init__(self, player):
+        super().__init__('Gift', player)
+        config = weapon_config[self.name]
+        self.size = loads(config['size'])
+        bang_image = pygame.image.load(config['bang_dir']).convert_alpha()
+
+        bang_image = pygame.transform.scale2x(bang_image) #for testing
+
+        bang_image.set_alpha(int(config['bang_alpha']))
+        self.bang_images = [pygame.transform.scale(bang_image,array(bang_image.get_size())*size) for size in self.size]
+
+        self.base_range = int(config['base_range'])
+        self.atk = loads(config['atk'])
+        self.wait = loads(config['wait'])
+
+        self.shoot_period = loads(config['shoot_period'])
+        self.shoot_timer = 0
+
+    def update(self, dt):
+        self.shoot_timer -= dt
+        if self.shoot_timer >= 0 : return []
+        self.shoot_timer = self.shoot_period[self.level]
+
+        vec = array((1 if self.player.drct == 'right' else -1, 0))
+        vec = vec*self.base_range*self.size[self.level]/self.wait[0]
+
+        return Gift_bullet(self.image, self.bang_images[self.level], self.wait,
+            self.player.pos.copy(), vec, self.atk[self.level])
 
 # LED燈條
 # 會以玩家為中心甩，造成的傷害低
@@ -433,167 +509,161 @@ class Gift(pygame.sprite.Sprite):
 # 要用到mask，在主函式或許需要多拉出來寫是否enemy overlap mask
 LED_basic_angularvec = 6 # 360/angular_vec * dt 是轉一圈需要的時間
 LED_basic_atk = 5
-class LED(pygame.sprite.Sprite):
-    def __int__(self, player, enemies, color, level, no):
+class LED_Bullet(pygame.sprite.Sprite):
+    def __init__(self, image, player, speed, angular_speed, atk):
         super().__init__()
-        self.level = level
-        self.image_ori = pygame.Surface([8, 60]) # 圖片有半條是透明的，圖片中心會是玩家，燈條實際長度只有30
-        self.image_ori.fill(color)
-        self.image_ori_rect = self.image_ori.get_rect()
-        self.image_ori_rect.center = self.player.pos
-        self.image = self.image_ori.copy()
+        self.angle = 0
+        self.image = image
+        self.rect = self.image.get_rect()
         self.player = player
-        
-        self.angular_vec = LED_basic_angularvec * (1/2 + level/2) # 升級
-        self.atk = LED_basic_atk * (3/4 + level/4) # 升級
-        self.hp = inf 
-        self.enemies = enemies
-        self.total_angle = 0 # 紀錄目前LED轉到哪
-        self.mask = pygame.mask.from_surface(self.image)
+        self.hp = float('inf')
+        self.atk = atk
+        self.pos = self.player.pos.copy()
+        self.speed = speed #actually radius
+        self.angular_speed = angular_speed
 
     def update(self, dt):
-        self.total_angle += self.angular_vec * dt
-        self.total_angle %= 360
-        self.pos = self.player.pos
+        if self.angle >= 2*pi : return self.kill()
+        self.angle += self.angular_speed*dt
+        relat_pos = array((sin(self.angle),cos(self.angle)))*self.speed
+        self.pos = self.player.pos + relat_pos
         self.rect.center = self.pos
-        self.image = pygame.transform.rotate(self.image_ori, self.total_angle)
-        self.mask = pygame.mask.from_surface(self.image)
 
-    def shoot(self, level):
+class LED(Weapon):
+    def __init__(self, player):
+        super().__init__('LED', player)
+        config = weapon_config[self.name]
+        self.colors = loads(config['colors'])
+        self.shoot_period = loads(config['shoot_period']) #無縫接軌
+        self.shoot_timer = 0
+        self.bullet_amount = loads(config['bullet_amount'])
+        self.atk = loads(config['atk'])
+        self.size = int(config['size'])
+
+        self.images = []
+        for i in range(self.bullet_amount[-1]):
+            image = pygame.Surface((self.size,self.size))
+            image.fill(self.colors[i])
+            self.images.append(image)
+
+    def update(self, dt):
+        self.shoot_timer -= dt
+        if self.shoot_timer > 0 : return []
+        self.shoot_timer += self.shoot_period[self.level]
+        angular_speed = 2*pi/self.shoot_period[self.level]
         bullets = pygame.sprite.Group()
-        bullets.add(LED(self.player, self.enemies, color='0000ff', level = level, no = 1))
+        for i in range(self.bullet_amount[self.level]):
+            bullets.add(LED_Bullet(self.images[i],self.player,
+            1.6*i*self.size+50, angular_speed, self.atk[self.level]))
+        return bullets
 
 # 拐杖糖
 # 會以玩家為圓心，面對的方向為中心線，上下各甩出60度的範圍
 # 造成的傷害比LED燈條略高，但還是希望他偏低
 # 升級後攻擊力增加，甩得比較快
 # 要用到mask，在主函式或許需要多拉出來寫是否enemy overlap mask
-CandyCane_basic_angularvec = 4   # 240/angular_vec * dt 是轉一個週期需要的時間
-CandyCane_basic_atk = 8
-class CandyCane(pygame.sprite.Sprite):
-    def __int__(self, player, enemies, color, level, no):
+class Candycane_cane(pygame.sprite.Sprite):
+    def __init__(self, image, player, pos, vec, exist_time, atk, hp):
         super().__init__()
-        self.level = level
-        self.image_ori = pygame.Surface([50, 20]) # 圖片有半條是透明的，圖片中心會是玩家，拐杖糖實際長度只有25
-        # default圖片檔是橫的，透明部份在右邊
-        self.image_ori.fill(color)
-        self.image_ori_rect = self.image_ori.get_rect()
-        self.image_ori_rect.center = self.player.pos
-
-        if self.player.drct == 'left':
-            self.image = self.image_ori.copy()
-        if self.player.drct == 'right':
-            self.image = pygame.transform.flip(self.image_ori,False,True)
+        self.image = image
+        self.rect = self.image.get_rect()
         self.player = player
-        self.angular_vec = CandyCane_basic_angularvec * (1/2 + level/2) # 升級
-        self.atk = CandyCane_basic_atk * (3/4 + level/4) # 升級
-        self.hp = inf 
-        self.enemies = enemies
-        self.total_angle = 0 # 紀錄目前拐杖糖轉到哪
-        self.mask = pygame.mask.from_surface(self.image)
+        self.atk = atk
+        self.hp = hp
+        self.pos = pos
+        self.vec = vec
+        self.timer = exist_time
 
     def update(self, dt):
-        self.pos = self.player.pos
+        self.pos += self.vec*dt
         self.rect.center = self.pos
-        if abs(self.total_angle) >= 60: # 和平衡位置差60度時轉回去
-            self.angular_vec *= -1
-        self.total_angle += self.angular_vec * dt
-        if self.player.drct == 'left':
-            self.image = pygame.transform.rotate(self.image_ori, self.total_angle)
-        if self.player.drct == 'right':
-            self.image1 = pygame.transform.flip(self.image_ori,False,True)
-            self.image = pygame.transform.rotate(self.image1, self.total_angle)
-        
-        self.mask = pygame.mask.from_surface(self.image)
+        self.timer -= dt
+        if self.timer <= 0 : return self.kill()
 
-    def shoot(self, level):
+class Candycane(Weapon):
+    def __init__(self, player): # no 表示第幾個此類武器，其餘武器default no恆等於1
+        super().__init__('Candycane', player)
+        config = weapon_config[self.name]
+        self.hp = int(config['hp'])
+        self.atk = loads(config['atk'])
+        self.shoot_period = loads(config['shoot_period'])
+        self.shoot_timer = 0
+        self.speed = int(config['speed'])
+
+    def calc_shoot_period(self):
+        return self.shoot_period[self.level]
+
+    def update(self, dt):
+        self.shoot_timer -= dt
+        if self.shoot_timer > 0 : return []
+        self.shoot_timer += self.calc_shoot_period()
+
+        return self.shoot()
+
+    def shoot(self):
         bullets = pygame.sprite.Group()
-        bullets.add(CandyCane(self.player, self.enemies, color='0000ff', level = level, no = 1))
+        angles = array(((1,1),(1,-1),(-1,-1),(-1,1)))/sqrt(2)
+        poss = angles * self.speed*2 + self.player.pos
+        vecs = angles * -1 * self.speed
+        for pos, vec in zip(poss, vecs):
+            bullets.add(Candycane_cane(self.image, self.player, pos, vec, 
+                2, self.atk[self.level], self.hp))
+        return bullets
 
-
-# 雪花/或雪地
-# 玩家以自己目前位置為中心設立雪地，進入雪地的怪物會持續扣血且速度變慢，玩家速度不變
+# 雪地
+# 玩家以自己目前位置為中心附近隨機位置設立雪地，進入雪地的怪物會持續扣血
 # 造成的傷害比LED還低，不然就是讓這武器不好被解鎖
 # 升級後攻擊力增加、雪地範圍變大
 SnowFlake_basic_sidelength = 50
 SnowFlake_basic_atk = 3
-class SnowFlake(pygame.sprite.Sprite):
-    def __int__(self, player, enemies, color, level, no):
+class SnowFlake_flake(pygame.sprite.Sprite):
+    def __init__(self, image, pos, atk, exist_time):
         super().__init__()
-        self.level = level
-        self.side_length = SnowFlake_basic_sidelength * (3/4 + level/4) # 升級
-        self.image = pygame.Surface([self.side_length, self.side_length])
-        self.image.fill(color)
+        self.atk = atk
+        self.hp = 0
+        self.timer = 0.5
+        self.pos = pos
+        self.exist_timer = exist_time
+        self.image = image
         self.rect = self.image.get_rect()
-        self.player = player
-        self.rect.center = player.pos
-        self.atk = SnowFlake_basic_atk * (1/2 + level/2) # 升級
-        self.hp = inf  # hp is how many enemies can the bullet hit
-        self.enemies = enemies
-        self.hold_time = 0 # 單片雪花存活時間
-
-    def update(self, dt):
-        self.hold_time += dt
-        if self.hold_time >= 100000 * dt:
-            self.pos = self.player.pos
-            self.hold_time = 0
-    def shoot(self, level):
-        bullets = pygame.sprite.Group()
-        bullets.add(SnowFlake(self.player, self.enemies, color='0000ff', level = level, no = 1))
-
-
-# 海豹
-# 直線型迴力鏢，從玩家的左上、右上、右下、左下斜45度角出發，走過一定距離後，返回玩家身邊。
-# 升級後移動速度變快，攻擊力變強
-Seal_basic_vec = 30
-Seal_basic_atk = 15
-Seal_amt = 4
-Seal_move_time = 100 # 單位是dt
-class Seal(pygame.sprite.Sprite):
-    def __int__(self, player, enemies, color, level, no):
-        super().__init__()
-        self.level = level
-        self.no = no
-        self.image_ori = pygame.Surface([20, 20])
-        self.image_ori.fill(color)
-        if no == 1 or no == 4:
-            self.image = self.image_ori.copy()
-        if no == 2 or no == 3:
-            self.image = pygame.transform.flip(self.image_ori, True, False)
-        self.rect = self.image.get_rect()
-        self.pos = self.player.pos
-        self.player = player
-        self.angle = 45 * no # 出發的角度
-        self.vec = Seal_basic_vec * (3/4 + level/4) # 升級
-        self.atk = Seal_basic_atk * (1/2 + level/2) # 升級
-        self.hp = inf  # hp is how many enemies can the bullet hit
-        self.enemies = enemies
-        self.should_return = False
-        self.move_time = 0
-
-    def update(self, dt):
-        if self.move_time >= Seal_move_time and not self.should_return:
-            self.should_return = True
-            self.move_time = 0
-        if not self.should_return:
-            self.pos -= (self.vec * cos(self.angle) * dt, self.vec * sin(self.angle) * dt)
-            self.rect.center = self.pos
-            self.move_time += 1
-        if self.should_return and self.move_time < Seal_move_time:
-            self.pos += ((self.player.pos[0] - self.pos[0])/Seal_move_time, (self.player.pos[1] - self.pos[1])/Seal_move_time)
-            self.move_time += 1
-        if self.should_return and self.move_time >= Seal_move_time:
-            self.pos = self.player.pos
-            self.move_time = 0
         self.rect.center = self.pos
 
-    def shoot(self, level):
-        bullets = pygame.sprite.Group()
-        for i in range(Seal_amt):
+    def update(self, dt):
+        self.timer -= dt
+        self.exist_timer -= dt
+        self.hp = 0
+        if self.exist_timer <= 0 : return self.kill()
+        if self.timer > 0 : return
+        self.timer = 0.5
+        self.hp = float('inf')
 
-            bullet
+class Snowflake(Weapon):
+    def __init__(self, player):
+        super().__init__('Snowflake', player)
+        config = weapon_config[self.name]
+        self.size = loads(config['size'])
+
+        self.image.set_alpha(int(config['bang_alpha']))
+        self.images = [pygame.transform.scale(self.image,array((size,size))) for size in self.size]
+
+        self.atk = loads(config['atk'])
+        self.exist_time = loads(config['exist_time'])
+
+        self.shoot_period = loads(config['shoot_period'])
+        self.shoot_timer = 0
+
+    def update(self, dt):
+        self.shoot_timer -= dt
+        if self.shoot_timer >= 0 : return []
+        self.shoot_timer += self.shoot_period[self.level]
+
+        x = random()*(width-200)+100
+        y = random()*(height-200)+100
+
+        return SnowFlake_flake(self.images[self.level],array((x,y)),self.atk[self.level],self.exist_time[self.level])
 
 weapon_list = {'Snowball':Snowball, 'Aim_snowball':Aim_snowball,
     'Deer_antler':Deer_antler, 'Sled':Sled, 'Shovel':Shovel,
-    'Sled_dog':Sled_dog}
-
+    'Sled_dog':Sled_dog, 'Mustache':Mustache, 'LED':LED,
+    'Gift': Gift, 'Snowflake':Snowflake, 'Candycane':Candycane,
+    'Igloo': Igloo}
