@@ -11,7 +11,7 @@ from pygame_gui.core import ObjectID
 
 from .config import *
 from configparser import ConfigParser, ExtendedInterpolation
-
+from .upgrade import *
 
 ui_config = ConfigParser(interpolation=ExtendedInterpolation())
 ui_config.read('./data/config/ui.ini')
@@ -145,7 +145,7 @@ class Upgrade_menu():
         self.screen.blit(self.img,(self.x,self.y))
 
 class Upgrade_option():
-    def __init__(self,screen,number):
+    def __init__(self,screen,number):#option,
         self.screen = screen
         config:dict = ui_config['upgrade_option']
         self.x = int(config['x'])
@@ -154,16 +154,27 @@ class Upgrade_option():
         self.width = int(config['width'])
         self.height = int(config['height'])
         self.selected = False
+        # self.option = option
         self.img = [pygame.image.load(path).convert_alpha() for path in config['img_dirs'].split('\n')]
-        
-        for i in range(len(self.img)):
-            self.img[i] = pygame.transform.scale(self.img[i],(self.width,self.height))
+        # self.option.image = pygame.transform.scale(self.option.image,(self.width,self.height))
+
+        self.img[0] = pygame.transform.scale(self.img[0],(self.width,self.height))
+        self.img[1] = pygame.transform.scale(self.img[1],(self.width,self.height))
+        for i in range(2,len(self.img)):
+            self.img[i] = pygame.transform.scale(self.img[i],(30,30))
         
     def draw(self):
         if self.selected:
             self.screen.blit(self.img[1],(self.x,self.y))
+            # self.screen.blit(self.option.image,(self.x,self.y))
+            self.screen.blit(self.img[3],(self.x,self.y))
+            self.screen.blit(self.img[5],(self.x,self.y))
+
         else:
             self.screen.blit(self.img[0],(self.x,self.y))
+            # self.screen.blit(self.option.image,(self.x,self.y))
+            self.screen.blit(self.img[2],(self.x,self.y))
+            self.screen.blit(self.img[4],(self.x,self.y))
 
 class Again():
     def __init__(self,screen):
@@ -387,13 +398,14 @@ class Pause():
 
 
 class Upgrade():
-    def __init__(self,screen,backend):
+    def __init__(self,screen,backend,all_weapons,all_buffs,selected_weapons,selected_buffs):
         self.upgrade_menu = Upgrade_menu(screen)
         self.selected = 0
-        self.upgrade_option0 = Upgrade_option(screen,0)
-        self.upgrade_option1 = Upgrade_option(screen,1)
-        self.upgrade_option2 = Upgrade_option(screen,2)
-        self.upgrade_option3 = Upgrade_option(screen,3)
+        # upgrade_options = upgrade(all_weapons,all_buffs,selected_weapons,selected_buffs)
+        self.upgrade_option0 = Upgrade_option(screen,  0)#upgrade_options[0]
+        self.upgrade_option1 = Upgrade_option(screen,  1)##upgrade_options[1],
+        self.upgrade_option2 = Upgrade_option(screen,  2)#upgrade_options[2],
+        self.upgrade_option3 = Upgrade_option(screen,  3)#upgrade_options[3],
         self.backend = backend
         self.options = [self.upgrade_option0,self.upgrade_option1,self.upgrade_option2,self.upgrade_option3]
 
@@ -405,15 +417,9 @@ class Upgrade():
         if event.key == K_RETURN:
             for option in self.options:
                 del option
-            if self.options[self.selected] == self.upgrade_option0:
-                self.backend.upgrade_menu = False
-            elif self.options[self.selected] == self.upgrade_option1:
-                self.backend.upgrade_menu = False
-            elif self.options[self.selected] == self.upgrade_option2:
-                self.backend.upgrade_menu = False
-            elif self.options[self.selected] == self.upgrade_option3:
-                self.backend.upgrade_menu = False
-           
+            self.upgrade_menu = False
+            # return self.options[self.selected]
+
     def show(self):
         for option in self.options:
             if self.options[self.selected] == option:
