@@ -113,14 +113,15 @@ def gaming(selected_character):
         b_e_collide = pygame.sprite.groupcollide(bullets, enemies, False, False)
 
         for bullet, hit_enemies in b_e_collide.items():
-            for enemy in hit_enemies: #bullet will have at least 1 health
+            for enemy in hit_enemies: #bullet may have 0 hp
+                if bullet.hp <= 0 : break
                 if enemy.hp == 0 :              
                     continue
                 enemy.hp -= bullet.atk
                 bullet.hp -= 1 
 
 
-                if bullet.hp <= 0 : break
+
 
         enemies_atked = pygame.sprite.spritecollide(player, enemies, dokill=False)
         enemies_atked += pygame.sprite.spritecollide(player, enemy_bullets, dokill=False)

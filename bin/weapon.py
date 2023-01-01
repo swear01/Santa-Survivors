@@ -185,7 +185,7 @@ class Sled(Weapon):
         self.atk = loads(config['atk'])
         self.speed = loads(config['speed'])
         self.bullet_amount = loads(config['bullet_amount'])
-        self.shoot_period = 1.2
+        self.shoot_period = float(config['shoot_period'])
         self.shoot_timer = self.shoot_period
         self.bullets = pygame.sprite.Group()
 
@@ -267,51 +267,72 @@ class Shovel(Weapon):
 # 會去找離自己最近的敵人攻擊
 # 離玩家太遠(SledDog_max_dist = 200)會跑回玩家身邊，再出發去尋找敵人
 # 升級後跑比較快、攻擊力增加
-SledDog_max_dist = 200
-SledDog_basic_atk = 15
-SledDog_basic_vec = 50
+class Sled_dog_bullet(pygame.sprite.Sprite):
+    def __init__(self, image, player, speed, atk, atk_period, max_distance) -> None:
+        super().__init__()
+        self.images = [image, pygame.transform.flip(image, True, False)]
+        self.image = self.images[0]
+        self.max_distance = max_distance
+        self.rect = self.image.get_rect()
+        self.player = player
+        self.pos = self.player.pos.copy()
+        self.speed = speed
+        self.hp = 0
+        self.atk = atk
+        self.atk_period = atk_period
+        self.atk_timer = 0
+        self.target_enemy = pygame.sprite.Group()
+
+    def update(self, dt):
+        if norm(self.pos - self.player.pos) > self.max_distance:
+            return self.kill()
+        if not self.target_enemy.has():
+            nearest_enemy = self.nearest_enemy(self.player.enemies)
+            if not nearest_enemy : return
+            self.target_enemy.add(nearest_enemy)
+        if norm(self.pos - self.target_enemy.sprites()[0].pos) > 10 : 
+            vec = self.target_enemy.sprites()[0].pos - self.pos
+            vec *= self.speed/norm(vec)
+            self.pos += vec*dt
+
+            #animations
+            if vec[0] > 0 :
+                self.image = self.images[1]
+            if vec[0] < 0 :
+                self.image = self.images[0]
+
+        if self.hp <= 0 :
+            self.atk_timer -= dt
+            if self.atk_timer <= 0 :
+                self.atk_timer = self.atk_period
+                self.hp += 1
+        self.rect.center = self.pos
+        
+
+    def nearest_enemy(self, enemies):
+        if not enemies : return None
+        return min(enemies, key=lambda enemy: norm(enemy.pos-self.pos))        
 
 class Sled_dog(Weapon):
     def __init__(self, player):
         super().__init__('Sled_dog', player)
         config = weapon_config[self.name]
+        self.image = pygame.transform.scale(self.image, array(self.image.get_size())//2)
         self.atk = loads(config['atk'])
+        self.speed = loads(config['speed'])
+        self.atk_period = float(config['atk_period'])
+        self.max_distance = int(config['max_distance'])
+        self.bullets = pygame.sprite.Group()
 
-
-class SledDog(pygame.sprite.Sprite):
-    def __init__(self, player,enemies, color, level, no):
-        super().__init__()
-        self.level = level
-        self.image = pygame.Surface([20, 20])
-        self.image.fill(color)
-        self.rect = self.image.get_rect()
-        self.pos = self.rect.center
-        self.nearest_enemy = Enemy.nearest_enemy(self.pos, enemies)
-        self.angle = atan((self.pos[1] - self.nearest_enemy.pos[1])/(self.pos[0] - self.nearest_enemy.pos[0]))
-
-        self.player = player
-        self.hp = inf  # hp is how many enemies can the bullet hit
-        self.atk = SledDog_basic_atk * (1/2 + level/2) # 升級
-        self.vec = (SledDog_basic_vec * (3/4 + level/4) * cos(self.angle), self.basic_speed * (3/4 + level/4) * sin(self.angle))
-        # 升級
-        self.should_return = False
     def update(self, dt):
-        if dist(self.player.pos, self.pos) >= SledDog_max_dist or self.should_return:
-            angle = atan((self.pos[1] - self.player.pos[1])/(self.pos[0] - self.player.pos[0]))
-            vec = (SledDog_basic_vec * (3/4 + self.level/4) * cos(angle), SledDog_basic_vec * (3/4 + self.level/4) * sin(angle))
-            self.pos += vec * dt
-
-            if dist(self.player.pos, self.pos) > 2:# 還沒回到玩家身邊
-                self.should_return = True
-            else:
-                self.should_return = False
-        else:
-            self.pos += self.vec * dt
-        self.rect.center = self.pos
-
-    def shoot(self, level):
-        bullets = pygame.sprite.Group()
-        bullets.add(SledDog(self.player, self.enemies, color='0000ff', level = level, no = 1))
+        if len(self.bullets) >= 1:
+            if self.bullets.sprites()[0].atk == self.atk[self.level]:
+                return []
+            self.bullets.sprites[0].kill()
+        sled_dog_bullet = Sled_dog_bullet(self.image, self.player, 
+            self.speed[self.level], self.atk[self.level], self.atk_period, self.max_distance)
+        self.bullets.add(sled_dog_bullet)
+        return [sled_dog_bullet]
 
 # 聖誕老人的鬍子
 # 鬍子定軌跡的在玩家上下方移動
@@ -565,4 +586,5 @@ class Seal(pygame.sprite.Sprite):
             bullet
 
 weapon_list = {'Snowball':Snowball, 'Aim_snowball':Aim_snowball,
-    'Deer_antler':Deer_antler, 'Sled':Sled, 'Shovel':Shovel}
+    'Deer_antler':Deer_antler, 'Sled':Sled, 'Shovel':Shovel,
+    'Sled_dog':Sled_dog}
