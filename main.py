@@ -53,7 +53,8 @@ def gaming(selected_character):
                 if backend.paused:
                     backend.game_over = pause.choose(event)
                 if backend.upgrade_menu:
-                    upgrade.choose(event)
+                    selected_upgrade = upgrade.choose(event)
+                    selected_upgrade.level += 1
 
 
         dt = clock.tick(FPS)/1000
@@ -150,7 +151,7 @@ def gaming(selected_character):
 
         if backend.upgrade:
             dt = 0
-            upgrade = Upgrade(screen,backend)
+            upgrade = Upgrade(screen,backend)#,[],[],[],[]
             upgrade.draw()
             backend.upgrade = False
             backend.upgrade_menu = True
