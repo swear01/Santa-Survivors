@@ -33,8 +33,6 @@ def gaming(selected_character):
     players = pygame.sprite.Group(player)
     r,g,b = 128,128,128 #for game over animation
 
-    player.weapons.append(weapon_list['Sled_dog'](player))
-
     spawner = Spawner()
     huds = Huds(manager, width, height, player)
 

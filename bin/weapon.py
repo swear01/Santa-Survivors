@@ -1,7 +1,7 @@
 from math import atan2, cos, dist, inf, pi, sin, degrees
 
 import pygame
-from numpy import array
+from numpy import array, sqrt
 from numpy.linalg import norm
 from pygame.locals import *  # CONSTS
 
@@ -11,6 +11,7 @@ from .enemy import Enemy
 from configparser import ConfigParser, ExtendedInterpolation
 
 from json import loads
+from random import random
 
 weapon_config = ConfigParser(interpolation=ExtendedInterpolation())
 weapon_config.read('./data/config/weapon.ini')
@@ -510,48 +511,53 @@ class LED(Weapon):
 # 造成的傷害比LED燈條略高，但還是希望他偏低
 # 升級後攻擊力增加，甩得比較快
 # 要用到mask，在主函式或許需要多拉出來寫是否enemy overlap mask
-CandyCane_basic_angularvec = 4   # 240/angular_vec * dt 是轉一個週期需要的時間
-CandyCane_basic_atk = 8
-class CandyCane(pygame.sprite.Sprite):
-    def __int__(self, player, enemies, color, level, no):
+class Candycane_cane(pygame.sprite.Sprite):
+    def __init__(self, image, player, pos, vec, exist_time, atk, hp):
         super().__init__()
-        self.level = level
-        self.image_ori = pygame.Surface([50, 20]) # 圖片有半條是透明的，圖片中心會是玩家，拐杖糖實際長度只有25
-        # default圖片檔是橫的，透明部份在右邊
-        self.image_ori.fill(color)
-        self.image_ori_rect = self.image_ori.get_rect()
-        self.image_ori_rect.center = self.player.pos
-
-        if self.player.drct == 'left':
-            self.image = self.image_ori.copy()
-        if self.player.drct == 'right':
-            self.image = pygame.transform.flip(self.image_ori,False,True)
+        self.image = image
+        self.rect = self.image.get_rect()
         self.player = player
-        self.angular_vec = CandyCane_basic_angularvec * (1/2 + level/2) # 升級
-        self.atk = CandyCane_basic_atk * (3/4 + level/4) # 升級
-        self.hp = inf 
-        self.enemies = enemies
-        self.total_angle = 0 # 紀錄目前拐杖糖轉到哪
-        self.mask = pygame.mask.from_surface(self.image)
+        self.atk = atk
+        self.hp = hp
+        self.pos = pos
+        self.vec = vec
+        self.timer = exist_time
 
     def update(self, dt):
-        self.pos = self.player.pos
+        self.pos += self.vec*dt
         self.rect.center = self.pos
-        if abs(self.total_angle) >= 60: # 和平衡位置差60度時轉回去
-            self.angular_vec *= -1
-        self.total_angle += self.angular_vec * dt
-        if self.player.drct == 'left':
-            self.image = pygame.transform.rotate(self.image_ori, self.total_angle)
-        if self.player.drct == 'right':
-            self.image1 = pygame.transform.flip(self.image_ori,False,True)
-            self.image = pygame.transform.rotate(self.image1, self.total_angle)
-        
-        self.mask = pygame.mask.from_surface(self.image)
+        self.timer -= dt
+        if self.timer <= 0 : return self.kill()
 
-    def shoot(self, level):
+class Candycane(Weapon):
+    def __init__(self, player): # no 表示第幾個此類武器，其餘武器default no恆等於1
+        super().__init__('Candycane', player)
+        config = weapon_config[self.name]
+        self.hp = int(config['hp'])
+        self.atk = loads(config['atk'])
+        self.shoot_period = loads(config['shoot_period'])
+        self.shoot_timer = 0
+        self.speed = int(config['speed'])
+
+    def calc_shoot_period(self):
+        return self.shoot_period[self.level]
+
+    def update(self, dt):
+        self.shoot_timer -= dt
+        if self.shoot_timer > 0 : return []
+        self.shoot_timer += self.calc_shoot_period()
+
+        return self.shoot()
+
+    def shoot(self):
         bullets = pygame.sprite.Group()
-        bullets.add(CandyCane(self.player, self.enemies, color='0000ff', level = level, no = 1))
-
+        angles = array(((1,1),(1,-1),(-1,-1),(-1,1)))/sqrt(2)
+        poss = angles * self.speed*2 + self.player.pos
+        vecs = angles * -1 * self.speed
+        for pos, vec in zip(poss, vecs):
+            bullets.add(Candycane_cane(self.image, self.player, pos, vec, 
+                2, self.atk[self.level], self.hp))
+        return bullets
 
 # 雪地
 # 玩家以自己目前位置為中心附近隨機位置設立雪地，進入雪地的怪物會持續扣血
@@ -559,82 +565,104 @@ class CandyCane(pygame.sprite.Sprite):
 # 升級後攻擊力增加、雪地範圍變大
 SnowFlake_basic_sidelength = 50
 SnowFlake_basic_atk = 3
-class SnowFlake(pygame.sprite.Sprite):
-    def __int__(self, player, enemies, color, level, no):
+class SnowFlake_flake(pygame.sprite.Sprite):
+    def __init__(self, image, pos, atk, exist_time):
         super().__init__()
-        self.level = level
-        self.side_length = SnowFlake_basic_sidelength * (3/4 + level/4) # 升級
-        self.image = pygame.Surface([self.side_length, self.side_length])
-        self.image.fill(color)
+        self.atk = atk
+        self.hp = 0
+        self.timer = 0.5
+        self.pos = pos
+        self.exist_timer = exist_time
+        self.image = image
         self.rect = self.image.get_rect()
-        self.player = player
-        self.rect.center = player.pos
-        self.atk = SnowFlake_basic_atk * (1/2 + level/2) # 升級
-        self.hp = inf  # hp is how many enemies can the bullet hit
-        self.enemies = enemies
-        self.hold_time = 0 # 單片雪花存活時間
-
-    def update(self, dt):
-        self.hold_time += dt
-        if self.hold_time >= 100000 * dt:
-            self.pos = self.player.pos
-            self.hold_time = 0
-    def shoot(self, level):
-        bullets = pygame.sprite.Group()
-        bullets.add(SnowFlake(self.player, self.enemies, color='0000ff', level = level, no = 1))
-
-
-# 海豹
-# 直線型迴力鏢，從玩家的左上、右上、右下、左下斜45度角出發，走過一定距離後，返回玩家身邊。
-# 升級後移動速度變快，攻擊力變強
-Seal_basic_vec = 30
-Seal_basic_atk = 15
-Seal_amt = 4
-Seal_move_time = 100 # 單位是dt
-class Seal(pygame.sprite.Sprite):
-    def __int__(self, player, enemies, color, level, no):
-        super().__init__()
-        self.level = level
-        self.no = no
-        self.image_ori = pygame.Surface([20, 20])
-        self.image_ori.fill(color)
-        if no == 1 or no == 4:
-            self.image = self.image_ori.copy()
-        if no == 2 or no == 3:
-            self.image = pygame.transform.flip(self.image_ori, True, False)
-        self.rect = self.image.get_rect()
-        self.pos = self.player.pos
-        self.player = player
-        self.angle = 45 * no # 出發的角度
-        self.vec = Seal_basic_vec * (3/4 + level/4) # 升級
-        self.atk = Seal_basic_atk * (1/2 + level/2) # 升級
-        self.hp = inf  # hp is how many enemies can the bullet hit
-        self.enemies = enemies
-        self.should_return = False
-        self.move_time = 0
-
-    def update(self, dt):
-        if self.move_time >= Seal_move_time and not self.should_return:
-            self.should_return = True
-            self.move_time = 0
-        if not self.should_return:
-            self.pos -= (self.vec * cos(self.angle) * dt, self.vec * sin(self.angle) * dt)
-            self.rect.center = self.pos
-            self.move_time += 1
-        if self.should_return and self.move_time < Seal_move_time:
-            self.pos += ((self.player.pos[0] - self.pos[0])/Seal_move_time, (self.player.pos[1] - self.pos[1])/Seal_move_time)
-            self.move_time += 1
-        if self.should_return and self.move_time >= Seal_move_time:
-            self.pos = self.player.pos
-            self.move_time = 0
         self.rect.center = self.pos
 
-    def shoot(self, level):
-        bullets = pygame.sprite.Group()
-        for i in range(Seal_amt):
-            bullet
+    def update(self, dt):
+        self.timer -= dt
+        self.exist_timer -= dt
+        self.hp = 0
+        if self.exist_timer <= 0 : return self.kill()
+        if self.timer > 0 : return
+        self.timer = 0.5
+        self.hp = float('inf')
+
+class Snowflake(Weapon):
+    def __init__(self, player):
+        super().__init__('Snowflake', player)
+        config = weapon_config[self.name]
+        self.size = loads(config['size'])
+
+        self.image.set_alpha(int(config['bang_alpha']))
+        self.images = [pygame.transform.scale(self.image,array((size,size))) for size in self.size]
+
+        self.atk = loads(config['atk'])
+        self.exist_time = loads(config['exist_time'])
+
+        self.shoot_period = loads(config['shoot_period'])
+        self.shoot_timer = 0
+
+    def update(self, dt):
+        self.shoot_timer -= dt
+        if self.shoot_timer >= 0 : return []
+        self.shoot_timer += self.shoot_period[self.level]
+
+        x = random()*(width-200)+100
+        y = random()*(height-200)+100
+
+        return SnowFlake_flake(self.images[self.level],array((x,y)),self.atk[self.level],self.exist_time[self.level])
+
+#實作成怪物
+# # 海豹
+# # 直線型迴力鏢，從玩家的左上、右上、右下、左下斜45度角出發，走過一定距離後，返回玩家身邊。
+# # 升級後移動速度變快，攻擊力變強
+# Seal_basic_vec = 30
+# Seal_basic_atk = 15
+# Seal_amt = 4
+# Seal_move_time = 100 # 單位是dt
+# class Seal(pygame.sprite.Sprite):
+#     def __int__(self, player, enemies, color, level, no):
+#         super().__init__()
+#         self.level = level
+#         self.no = no
+#         self.image_ori = pygame.Surface([20, 20])
+#         self.image_ori.fill(color)
+#         if no == 1 or no == 4:
+#             self.image = self.image_ori.copy()
+#         if no == 2 or no == 3:
+#             self.image = pygame.transform.flip(self.image_ori, True, False)
+#         self.rect = self.image.get_rect()
+#         self.pos = self.player.pos
+#         self.player = player
+#         self.angle = 45 * no # 出發的角度
+#         self.vec = Seal_basic_vec * (3/4 + level/4) # 升級
+#         self.atk = Seal_basic_atk * (1/2 + level/2) # 升級
+#         self.hp = inf  # hp is how many enemies can the bullet hit
+#         self.enemies = enemies
+#         self.should_return = False
+#         self.move_time = 0
+
+#     def update(self, dt):
+#         if self.move_time >= Seal_move_time and not self.should_return:
+#             self.should_return = True
+#             self.move_time = 0
+#         if not self.should_return:
+#             self.pos -= (self.vec * cos(self.angle) * dt, self.vec * sin(self.angle) * dt)
+#             self.rect.center = self.pos
+#             self.move_time += 1
+#         if self.should_return and self.move_time < Seal_move_time:
+#             self.pos += ((self.player.pos[0] - self.pos[0])/Seal_move_time, (self.player.pos[1] - self.pos[1])/Seal_move_time)
+#             self.move_time += 1
+#         if self.should_return and self.move_time >= Seal_move_time:
+#             self.pos = self.player.pos
+#             self.move_time = 0
+#         self.rect.center = self.pos
+
+#     def shoot(self, level):
+#         bullets = pygame.sprite.Group()
+#         for i in range(Seal_amt):
+#             bullet
 
 weapon_list = {'Snowball':Snowball, 'Aim_snowball':Aim_snowball,
     'Deer_antler':Deer_antler, 'Sled':Sled, 'Shovel':Shovel,
     'Sled_dog':Sled_dog, 'Mustache':Mustache, 'LED':LED,
-    'Gift': Gift}
+    'Gift': Gift, 'Snowflake':Snowflake, 'Candycane':Candycane}
