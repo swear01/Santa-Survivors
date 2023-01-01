@@ -42,7 +42,7 @@ class Xporb(Drop):
         if norm(self.pos-self.player.pos) < self.player.absorb_range :
             dist = norm(self.pos-self.player.pos)
             drct = (self.player.pos-self.pos)/dist
-            self.pos += 3000/dist*drct*dt
+            self.pos += 10000/dist*drct*dt
         self.rect.center = self.pos
         
     def absorbed(self):

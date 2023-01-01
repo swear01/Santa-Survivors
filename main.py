@@ -126,6 +126,7 @@ def gaming(selected_character):
         enemies_atked += pygame.sprite.spritecollide(player, enemy_bullets, dokill=False)
 
         for enemy in enemies_atked:
+            if not pygame.sprite.collide_mask(player, enemy) : continue
             player.hp -= enemy.atk
             enemy.avoid()
             
@@ -139,10 +140,10 @@ def gaming(selected_character):
 
         # draw zone
         background.draw(screen)
-        bullets.draw(screen)
         drops.draw(screen)
         enemy_bullets.draw(screen)
         enemies.draw(screen)
+        bullets.draw(screen)
         players.draw(screen) #player is always at the top
         manager.draw_ui(screen)
 

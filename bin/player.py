@@ -79,6 +79,7 @@ class Player(pygame.sprite.Sprite):
             self.backend.game_over = True
         self.rect.center = self.pos #self.rect.center is tuple 
         self.image = self.images[int(time_elapsed+0.5) % len(self.images)][self.drct]
+        self.mask = pygame.mask.from_surface(self.image)
 
 
 

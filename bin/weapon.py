@@ -1,4 +1,4 @@
-from math import atan, cos, dist, inf, pi, sin
+from math import atan2, cos, dist, inf, pi, sin, degrees
 
 import pygame
 from numpy import array
@@ -176,6 +176,7 @@ class Sled_bullet(pygame.sprite.Sprite):
             return self.kill()
         self.pos += self.vec * dt
         self.rect.center = self.pos
+
 class Sled(Weapon):
     def __init__(self, player):
         super().__init__('Sled', player)
@@ -207,39 +208,60 @@ class Sled(Weapon):
 # 升級後鏟子頭變大、攻擊力增加
 Shovel_side_length = 10 # 鏟子頭的邊長
 Shovel_basic_atk = 20
-class Shovel(pygame.sprite.Sprite):
-    def __init__(self, player,enemies, color, level, no):
+class Shovel_head(pygame.sprite.Sprite):
+    def __init__(self, image, player, hp, atk_real, shoot_wait, nearest_enemy) -> None:
         super().__init__()
-        self.level = level
-        self.angle = atan((self.player.pos[1] - self.nearest_enemy.pos[1])/(self.player.pos[0] - self.nearest_enemy.pos[0]))
-        self.image = pygame.Surface([Shovel_side_length * (3/4 + level/4), Shovel_side_length * (3/4 + level/4)]) # 升級
-        # self.image是放鏟子頭，也就是真的可以攻擊的區域
-        self.image.fill(color)
+        self.image = image
         self.rect = self.image.get_rect()
-        self.nearest_enemy = Enemy.nearest_enemy(self.player.pos, enemies)
-        self.rect.pos = (self.player.pos[0] - 25 * cos(self.angle), self.player.pos[1] - 25 * sin(self.angle))
-        # 鏟子長 = 30，扣掉頭剩20的柄，因為是中心所以+5
-
-        self.image_show_ori = pygame.Surface([10, 30]) # self.image是放鏟子圖片的地方
-        self.image_show_ori.fill(color)
-        self.image_show_ori.rect = self.image_show_ori.get_rect()
-        self.image_show_ori.rect.bottom = self.player.pos
-        self.image_show = self.image_show_ori.copy()
-        self.image_show = pygame.transform.rotate(self.image_show_ori, self.angle)
-
         self.player = player
-        self.hp = inf  # hp is how many enemies can the bullet hit
-        self.atk = Shovel_basic_atk * level # 升級
+        self.atk_real = atk_real
+        self.shoot_wait = shoot_wait
+        self.enemy = nearest_enemy
+        self.atk = 0
+
+        self.hp_real = hp
+        self.hp = float('inf')
 
     def update(self, dt):
-        self.rect.pos = (self.player.pos[0] - 25 * cos(self.angle), self.player.pos[1] - 25 * sin(self.angle))
-        self.rect.center = self.rect.pos
+        self.shoot_wait -= dt
+        self.pos = self.enemy.pos.copy()
+        self.rect.center = self.pos
+        if self.shoot_wait > 0 : return
+        #after attack disappear
+        if self.atk != 0 : return self.kill()
+        self.atk = self.atk_real
+        self.hp = self.hp_real
+        
+        
 
-        self.image_show = pygame.transform.rotate(self.image_show_ori, self.angle)       
 
-    def shoot(self, level):
-        bullets = pygame.sprite.Group()
-        bullets.add(Shovel(self.player, self.enemies, color='0000ff', level = level, no = 1))
+class Shovel(Weapon):
+    def __init__(self, player):
+        super().__init__('Shovel', player)
+        config = weapon_config[self.name]
+        self.atk = loads(config['atk'])
+        self.hp = int(config['hp'])
+        self.max_track_distance = int(config['max_track_distance'])
+        self.shoot_period = loads(config['shoot_period'])
+        self.shoot_timer = 0
+
+    def update(self, dt):
+        self.shoot_timer -= dt
+        if self.shoot_timer > 0 : return []
+        
+        nearest_enemy = self.player.nearest_enemy()
+        if not nearest_enemy : return []
+        vec = nearest_enemy.pos - self.player.pos 
+        if norm(vec) > self.max_track_distance : return []
+
+        #success shoot
+        self.shoot_timer = self.shoot_period[self.level]
+        angle = degrees(atan2(*vec))
+        image = pygame.transform.rotate(self.image, angle)
+
+        return Shovel_head(image, self.player, self.hp, self.atk[self.level], 
+            self.shoot_period[self.level]/2, nearest_enemy)  
+
 
 # 雪橇犬
 # 會去找離自己最近的敵人攻擊
@@ -248,6 +270,14 @@ class Shovel(pygame.sprite.Sprite):
 SledDog_max_dist = 200
 SledDog_basic_atk = 15
 SledDog_basic_vec = 50
+
+class Sled_dog(Weapon):
+    def __init__(self, player):
+        super().__init__('Sled_dog', player)
+        config = weapon_config[self.name]
+        self.atk = loads(config['atk'])
+
+
 class SledDog(pygame.sprite.Sprite):
     def __init__(self, player,enemies, color, level, no):
         super().__init__()
@@ -535,4 +565,4 @@ class Seal(pygame.sprite.Sprite):
             bullet
 
 weapon_list = {'Snowball':Snowball, 'Aim_snowball':Aim_snowball,
-    'Deer_antler':Deer_antler, 'Sled':Sled}
+    'Deer_antler':Deer_antler, 'Sled':Sled, 'Shovel':Shovel}
