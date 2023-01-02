@@ -73,6 +73,11 @@ class Huds:
             anchors={'right':'right','top_target':self.xp_bar}, text = 'kills:0', manager=manager,
             object_id=ObjectID('#guide_text')
             )
+        self.gold_counter = pygame_gui.elements.UILabel(
+            relative_rect=pygame.Rect(-250,50,int(config['gold_counter']['width']),int(config['gold_counter']['height'])),
+            anchors={'right':'right','top_target':self.xp_bar}, text = 'golds:0', manager=manager,
+            object_id=ObjectID('#guide_text')
+            )
         self.weapon_icons = [Weapon_icon(screen,'weapon_icon',0), Weapon_icon(screen,'weapon_icon',1), Weapon_icon(screen,'weapon_icon',2), Weapon_icon(screen,'weapon_icon',3)]
         self.buff_icons = [Buff_icon(screen,'buff_icon',0), Buff_icon(screen,'buff_icon',1), Buff_icon(screen,'buff_icon',2), Buff_icon(screen,'buff_icon',3)]
         self.weapons = 0
@@ -80,9 +85,10 @@ class Huds:
         #self.timer.set_text_scale(1)
         
         
-    def update(self, time_elapsed,kill_counts):
+    def update(self, time_elapsed,kill_counts,gold_counts):
         self.timer.set_text(f'{(int(time_elapsed // 60)):02d} : {(int(time_elapsed) % 60):02d}')
         self.kill_counter.set_text(f'kills:{kill_counts}')
+        self.gold_counter.set_text(f'golds:{gold_counts}')
         if self.weapons < len(self.player.weapons):
             self.weapon_icons[self.weapons] = Weapon_icon(self.screen,self.player.weapons[self.weapons],self.weapons)
             self.weapons += 1
@@ -95,6 +101,7 @@ class Huds:
         self.hp_bar.kill()
         self.xp_bar.kill()
         self.kill_counter.kill()
+        self.gold_counter.kill()
        
     def draw(self,screen):
             for icon in self.weapon_icons:

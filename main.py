@@ -47,7 +47,7 @@ def gaming(selected_character):
 
     spawner = Spawner(player)
     huds = Huds(screen,manager, width, height, player)
-
+    die_music_played = False
     while True:
         for event in pygame.event.get():
             manager.process_events(event=event)
@@ -92,7 +92,7 @@ def gaming(selected_character):
         player.update(keys ,time_elapsed, dt) #include moves
         player.shift_pos(background,(width, height), bullets, enemies, enemy_bullets, drops)
         
-        huds.update(time_elapsed,player.enemy_killed)
+        huds.update(time_elapsed,player.enemy_killed,player.gold)
         for weapon in player.weapons:
             bullets.add(weapon.update(dt))
         for bullet in bullets:
@@ -139,7 +139,8 @@ def gaming(selected_character):
             for enemy in enemies_atked:
                 if not pygame.sprite.collide_mask(player, enemy) : continue
                 player.hp -= enemy.atk
-                player_hurt.play()
+                if not die_music_played:
+                    player_hurt.play()
                 enemy.avoid()
                 
             drops_absorbed = pygame.sprite.spritecollide(player, drops, dokill=False)
@@ -172,12 +173,14 @@ def gaming(selected_character):
             dt = 0
             ds = clock.get_time()
             r,g,b = r-ds*0.1,g-ds*0.1,b-ds*0.1
-            player_die.play()
+            if not die_music_played:
+                player_die.play()
+            die_music_played = True
             if r <= 0:
                 screen.fill((0,0,0))
                 huds.kill()
                 backend.game_over = False
-                return "game_over", player.enemy_killed, False
+                return "game_over", player.enemy_killed,player.gold, False
             else:
                 screen.fill((r,g,b))
         pygame.display.flip()
@@ -198,9 +201,9 @@ while True:
     elif backend.select_character:
         next_stage, backend.selected_character, backend.select_character = select_role(screen,manager,clock)
     elif backend.start_game:
-        next_stage, enemy_killed,backend.start_game = gaming(backend.selected_character)
+        next_stage, enemy_killed, golds,backend.start_game = gaming(backend.selected_character)
     elif backend.game_over:
-        next_stage,backend.game_over = game_over(screen,manager,clock, enemy_killed)
+        next_stage,backend.game_over = game_over(screen,manager,clock, enemy_killed, golds)
 
     if next_stage == 'main_page':
         backend.main_page = True

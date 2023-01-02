@@ -487,7 +487,7 @@ def select_role(screen,manager,clock):
         manager.draw_ui(screen)
         pygame.display.flip()
 
-def game_over(screen,manager,clock,enemy_killed):
+def game_over(screen,manager,clock,enemy_killed,golds):
     screen.fill("#000000")
     running = True
     dt = 0
@@ -501,6 +501,11 @@ def game_over(screen,manager,clock,enemy_killed):
     kill_counter = pygame_gui.elements.UILabel(
             relative_rect=pygame.Rect(100,400,200,50),
              text = f'kills:{enemy_killed}', manager=manager,
+            object_id=ObjectID('#guide_text')
+            )
+    gold_counter = pygame_gui.elements.UILabel(
+            relative_rect=pygame.Rect(100,500,200,50),
+             text = f'golds:{golds}', manager=manager,
             object_id=ObjectID('#guide_text')
             )
     while running:
@@ -520,9 +525,9 @@ def game_over(screen,manager,clock,enemy_killed):
                 exit()
             elif event.type == pygame.KEYDOWN:
                 # select 
-                if event.key == K_UP and selected>0:
+                if event.key == K_UP or event.key == K_w and selected>0:
                     selected-=1
-                if event.key == K_DOWN and selected<len(options)-1:
+                if event.key == K_DOWN or event.key == K_s and selected<len(options)-1:
                     selected+=1
 
                 # next stage
@@ -530,6 +535,7 @@ def game_over(screen,manager,clock,enemy_killed):
                     if options[selected] == again:
                         chosen = "main_page"
                         kill_counter.kill()
+                        gold_counter.kill()
                     if options[selected] == quit:
                         pygame.quit()
                         exit()
