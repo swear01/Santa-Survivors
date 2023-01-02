@@ -7,7 +7,7 @@ import pygame
 buff_config = ConfigParser(interpolation=ExtendedInterpolation())
 buff_config.read('./data/config/buff.ini')
 
-class Buff():
+class Buff:
     def __init__(self, buff_name):
         self.name = buff_name
         config:dict = buff_config[self.name]
@@ -20,8 +20,45 @@ class Buff():
     def can_upgrade(self):
         return self.level < self.max_level
 
+class Fortune(Buff):
+    def __init__(self):
+        super().__init__('Fortune')
+
+class Dice(Buff):
+    def __init__(self):
+        super().__init__('Dice')
+
+class Muscle(Buff):
+    def __init__(self):
+        super().__init__('Muscle')
+
+class Nike(Buff):
+    def __init__(self):
+        super().__init__('Nike')
+
+class Warming(Buff):
+    def __init__(self):
+        super().__init__('Warming')
+
+class Hell(Buff):
+    def __init__(self):
+        super().__init__('Hell')
+
+class WD_40(Buff):
+    def __init__(self):
+        super().__init__('WD_40')
+
+class Wise(Buff):
+    def __init__(self):
+        super().__init__('Wise')
+
+class Strong(Buff):
+    def __init__(self):
+        super().__init__('Strong')
 
 available_names = buff_config.sections()
 
-available_buffs:dict[str,Buff] = {name:Buff(name) for name in available_names}
-type_buff = {buff.type : buff for buff in available_buffs.values()}
+available_buffs:dict[str,Buff] = {'Fortune':Fortune, 'Dice':Dice, 'Muscle':Muscle, 'Nike':Nike,
+                                  'Warming':Warming, 'Hell':Hell, 'WD_40':WD_40, 'Wise':Wise, 'Strong':Strong}
+type_buff :dict[str,Buff] = {'gold':Fortune, 'reroll':Dice, 'atk':Muscle, 'speed':Nike,
+                                  'hp_r':Warming, 'enemy_period':Hell, 'shoot_period':WD_40, 'xp':Wise, 'hp':Strong}
