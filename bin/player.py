@@ -4,13 +4,21 @@ import pygame
 from numpy import array
 from numpy.linalg import norm
 from pygame.locals import *  # CONSTS
-
+import json
 
 from .weapon import *
 
 
 player_config = ConfigParser(interpolation=ExtendedInterpolation())
 player_config.read('./data/config/player.ini')
+
+input_binds = ConfigParser(interpolation=ExtendedInterpolation())
+input_binds.read('./data/config/input_binding.ini')
+key_binds = {} #final use objects
+key_map = vars()
+for option, key_texts in input_binds.items('keyboard'):
+    keys = [key_map[f'K_{key_text}'] for key_text in json.loads(key_texts)]
+    key_binds[option] = keys
 
 class Player(pygame.sprite.Sprite):
     max_weapons = int(player_config['common']['max_weapons'])
@@ -53,35 +61,35 @@ class Player(pygame.sprite.Sprite):
 
         self.calc_stats()
 
-    def move(self, drct, dt):
-        if drct == 'up' and 'up' in self.movable_dir:
-            self.pos[1] -= self.speed*dt
+    def move(self, keys, dt):
+        vec = array((0,0))
+        drct_map = {'up':(0,-1),'down':(0,1),'left':(-1,0),'right':(1,0)}
+        for direction in ['up','down','left','right']:
+            if direction not in self.movable_dir : continue
+            for key_bind in key_binds[direction]:
+                if keys[key_bind] :
+                    vec += drct_map[direction]
+                    break
 
-        if drct == 'down' and 'down' in self.movable_dir:
-            self.pos[1] += self.speed*dt
+        if norm(vec) == 0 : return
+        vec = vec/norm(vec)
+        self.pos += vec*self.speed*dt
 
-        if drct == 'left' and 'left' in self.movable_dir:
-            self.pos[0] -= self.speed*dt
+        if vec[0] > 0 : self.drct = 'right'
+        if vec[0] < 0 : self.drct = 'left'
 
-        if drct == 'right' and 'right' in self.movable_dir:
-            self.pos[0] += self.speed*dt
-    
-    def turn(self, drct):
-        if drct == 'left':
-            self.image = self.image_ori
-        if drct == 'right':
-            self.image = pygame.transform.flip (self.image_ori,False,True)
 
-    def turn(self, drct):
-        self.drct = drct
 
-    def update(self, time_elapsed, dt):
+    def update(self, keys, time_elapsed, dt):
         if self.xp > self.xp_to_next_level(self.level):
             self.upgrade()
         if self.hp <= 0:
             self.backend.game_over = True
-        self.rect.center = self.pos #self.rect.center is tuple 
+
+        self.move(keys, dt)
         self.image = self.images[int(time_elapsed+0.5) % len(self.images)][self.drct]
+
+        self.rect.center = self.pos #self.rect.center is tuple 
         self.mask = pygame.mask.from_surface(self.image)
 
 

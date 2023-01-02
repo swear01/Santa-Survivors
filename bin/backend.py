@@ -12,5 +12,12 @@ class Backend:
         self.game_over = False
         self.game_over_menu = False
         pass
+
+    @staticmethod
+    def draw(screen, *surfaces):
+        for surface in surfaces:
+            surface.draw(screen)
+
+
     
     
