@@ -51,10 +51,28 @@
         "font":
         {
             "name": "UltimatePixelFont",
-            "size": "40",
+            "size": "30",
             "bold": "0",
             "italic": "0",
             "regular_path": "./data/fonts/UltimatePixelFont.ttf"
+        },
+        "misc":
+        {
+            "text_shadow_size": "0"
+        }
+    },
+    "#guide_text":
+    {
+        "colours":
+        {   "normal_text": "#FFFFFF"
+        },
+        "font":
+        {
+            "name": "Microsoft JhengHei",
+            "size": "32",
+            "bold": "0",
+            "italic": "0",
+            "regular_path": "./data/fonts/Microsoft JhengHei.ttf"
         },
         "misc":
         {

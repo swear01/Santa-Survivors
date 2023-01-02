@@ -43,15 +43,18 @@ def upgrade(all_weapons,all_buffs,selected_weapons,selected_buffs):
         weights += [non_selected]
     times = 0
     i = 0
-    while len(result) < 4:
-        n = random.randint(0,len(weights)-1)
-        if weights[n] not in result:
-            result += [weights[n]]
-        times+=1
-        if times>20:
-            break
-    while len(result) < 4:
-        result += [weights[0]]
-        if i+3<len(weights):
-            i+=3
-    return result
+    if len(weights) != 0:
+        while len(result) < 4:
+            n = random.randint(0,len(weights)-1)
+            if weights[n] not in result:
+                result += [weights[n]]
+            times+=1
+            if times>20:
+                break
+        while len(result) < 4:
+            result += [weights[0]]
+            if i+3<len(weights):
+                i+=3
+        return result
+    else:
+        return 0

@@ -17,6 +17,10 @@ from bin.huds import Huds
 from bin.player import Player
 from bin.ui import *
 from bin.weapon import weapon_list
+from configparser import ConfigParser, ExtendedInterpolation
+
+bgm_and_sounds_config = ConfigParser(interpolation=ExtendedInterpolation())
+bgm_and_sounds_config.read('./data/config/bgm_and_sounds.ini')
 
 clock = pygame.time.Clock()
 manager = pygame_gui.UIManager((width,height))
@@ -25,6 +29,14 @@ for theme_file_path in theme_paths:
 
 backend = Backend()
 background = Background()
+bgm = pygame.mixer.music.load(bgm_and_sounds_config['bgm']['dir'])
+player_hurt = pygame.mixer.Sound(bgm_and_sounds_config['player_hurt']['dir'])
+player_hurt.set_volume(0.4)
+player_die = pygame.mixer.Sound(bgm_and_sounds_config['player_die']['dir'])
+player_die.set_volume(0.6)
+
+pygame.mixer.music.play(-1)#表示音樂撥放幾次
+pygame.mixer.music.set_volume(0.4)
 
 def gaming(selected_character):
     time_elapsed = 0
@@ -43,15 +55,13 @@ def gaming(selected_character):
                 pygame.quit()
                 sys.exit()
             if event.type == KEYDOWN:
-                if event.key == K_p and not backend.paused:
+                if event.key == K_p and not backend.paused and not backend.upgrade_menu or backend.upgrade:
                     backend.paused = True
                     pause = Pause(screen,backend)
                 if backend.paused:
                     backend.game_over = pause.choose(event)
                 if backend.upgrade_menu:
                     upgrade.choose(event)
-                    for weapon in player.weapons:
-                        print(weapon.name,weapon.level)
 
 
         dt = clock.tick(FPS)/1000
@@ -115,6 +125,7 @@ def gaming(selected_character):
             for enemy in enemies_atked:
                 if not pygame.sprite.collide_mask(player, enemy) : continue
                 player.hp -= enemy.atk
+                player_hurt.play()
                 enemy.avoid()
                 
             drops_absorbed = pygame.sprite.spritecollide(player, drops, dokill=False)
@@ -124,9 +135,8 @@ def gaming(selected_character):
 
 
         manager.update(dt)
-
         # draw at last/ player is always on the top
-        backend.draw(screen,background,drops,enemy_bullets,enemies,bullets,players)
+        backend.draw(screen,background,drops,enemy_bullets,enemies,bullets,huds,players)
         manager.draw_ui(screen)
 
         if backend.upgrade:
@@ -147,7 +157,7 @@ def gaming(selected_character):
             dt = 0
             ds = clock.get_time()
             r,g,b = r-ds*0.1,g-ds*0.1,b-ds*0.1
-            
+            player_die.play()
             if r <= 0:
                 screen.fill((0,0,0))
                 huds.kill()
