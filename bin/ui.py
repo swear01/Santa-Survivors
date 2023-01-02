@@ -116,6 +116,45 @@ class Quit():
         else:
             self.screen.blit(self.img[0],(self.x,self.y))
 
+class Tutorial():
+    def __init__(self,screen):
+        self.screen = screen
+        config:dict = ui_config['tutorial']
+        self.x = int(config['x'])
+        self.y = int(config['y'])
+        self.width = int(config['width'])
+        self.height = int(config['height'])
+        self.img = [pygame.image.load(path).convert_alpha() for path in config['img_dirs'].split('\n')]
+        self.selected = False
+
+        for i in range(len(self.img)):
+            self.img[i] = pygame.transform.scale(self.img[i],(self.width,self.height))
+
+    def draw(self):
+        if self.selected:
+            self.screen.blit(self.img[1],(self.x,self.y))
+        else:
+            self.screen.blit(self.img[0],(self.x,self.y))
+    
+class Show_tutorial():
+    def __init__(self,screen,manager):
+        self.screen = screen
+        config:dict = ui_config['show_tutorial']
+        self.x = int(config['x'])
+        self.y = int(config['y'])
+        self.width = int(config['width'])
+        self.height = int(config['height'])
+        self.guide_texts = [text for text in ui_config['show_tutorial']['guide_texts'].split('\n')]
+        self.img = [pygame.image.load(path).convert_alpha() for path in ui_config['show_tutorial']['img_dirs'].split('\n')]
+        self.text = pygame_gui.elements.UILabel(relative_rect=pygame.Rect(340,450,600,270),
+            text = f"{ui_config['santa']['hp_r']}", manager=manager,object_id=ObjectID('#guide_text'))
+        for i in range(len(self.img)):
+            self.img[i] = pygame.transform.scale(self.img[i],(self.width,self.height))
+
+    def draw(self,stage):
+            self.screen.blit(self.img[stage],(self.x,self.y))
+            self.text.set_text(self.guide_texts[stage])
+
 class Resume():
     def __init__(self,screen):
         self.screen = screen
@@ -315,8 +354,9 @@ def main_page(screen,manager,clock):
     main_page_background = Main_page_background(screen)
     title = Title(screen)
     start = Start(screen)
+    tutorial = Tutorial(screen)
     quit = Quit(screen)
-    options = [start,quit]
+    options = [start,tutorial,quit]
 
     while running:
         main_page_background.draw()
@@ -348,6 +388,39 @@ def main_page(screen,manager,clock):
                     if options[selected] == quit:
                         pygame.quit()
                         exit()
+                    if options[selected] == tutorial:
+                        return "tutorial",False
+                if event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+        # - update -
+        manager.update(dt)
+        # - draws -
+        manager.draw_ui(screen)
+        pygame.display.flip()
+
+def tutorial(screen,manager,clock):
+    screen.fill("#90EE90")
+    running = True
+    dt = 0
+    stage = 0
+    # create title and options
+    main_page_background = Main_page_background(screen)
+    show_tutorial = Show_tutorial(screen,manager)
+    while running:
+        main_page_background.draw()
+        if stage >= 4:
+            show_tutorial.text.kill()
+            return 'main_page',False
+        show_tutorial.draw(stage)
+        # - events -
+        dt = clock.tick(FPS)/1000
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            elif event.type == pygame.KEYDOWN:
+                # next stage
+                stage += 1
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
         # - update -
