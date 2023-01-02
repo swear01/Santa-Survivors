@@ -57,7 +57,7 @@ class Player(pygame.sprite.Sprite):
         self.xp = 0
         self.level = 0
         self.enemy_killed = 0
-        self.gold_obtained = 0 
+        self.gold = 0 
 
     def move(self, keys, dt):
         vec = array((0,0))
