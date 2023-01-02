@@ -155,13 +155,13 @@ class Deer_antler(Weapon):
         super().__init__('Deer_antler', player)
         config = weapon_config[self.name]
         self.atk = loads(config['atk'])
-        self.bullet = Deer_antler_bullet(self.image, self.player, self.atk[self.level], 1) #let it reset in update
+        self.bullet = pygame.sprite.GroupSingle()
 
     def update(self, dt):
-        if self.level == self.bullet.level : return []
-        self.bullet.kill()
-        self.bullet = Deer_antler_bullet(self.image, self.player, self.atk[self.level], self.level)
-        return self.bullet
+        if not self.bullet.sprite or self.level != self.bullet.sprite.level :
+            self.bullet.add(Deer_antler_bullet(self.image, self.player, self.atk[self.level], self.level))
+            return self.bullet
+        return []
 
 #雪屋 防護罩形式，沒血時會隱藏
 class Igloo_shelter(pygame.sprite.Sprite):
@@ -200,13 +200,13 @@ class Igloo(Weapon):
         self.atk = int(config['atk'])
         self.max_hp = loads(config['max_hp'])
         self.regeneration_time = loads(config['regeneration_time'])
-        self.bullet = Igloo_shelter(self.image, self.player, self.atk, self.max_hp[self.level], self.regeneration_time[self.level], 1) #let it reset in update
+        self.bullet = pygame.sprite.GroupSingle()
 
     def update(self, dt):
-        if self.level == self.bullet.level : return []
-        self.bullet.kill()
-        self.bullet = Igloo_shelter(self.image, self.player, self.atk, self.max_hp[self.level], self.regeneration_time[self.level], self.level)
-        return self.bullet
+        if not self.bullet.sprite or self.level != self.bullet.sprite.level :
+            self.bullet.add(Igloo_shelter(self.image, self.player, self.atk, self.max_hp[self.level], self.regeneration_time[self.level], self.level))
+            return self.bullet
+        return []
 
 # 雪橇(聖誕老人的起始武器)
 # 從玩家的下方，由左而右水平開過去，到螢幕邊界會重新從左邊開進去
@@ -436,18 +436,20 @@ class Mustache(Weapon):
 # 升級後飛比較快(也就是更快擁有新的禮物)、攻擊力增加、攻擊範圍增加
 # 匯入圖片的時候玩家的禮物固定一兩個顏色就好
 class Gift_bullet(pygame.sprite.Sprite):
-    def __init__(self, image, bang_image, wait, pos, vec, atk) -> None:
+    def __init__(self, player, image, bang_image, wait, pos, speed, atk) -> None:
         super().__init__()
         self.image = image
         self.bang_image = bang_image
         self.wait = wait
         self.rect = pygame.Rect(pos,(1,1))
         self.pos = pos
-        self.vec = vec
+        self.vec = 0
+        self.speed = speed
         self.hp = 0
         self.phase = 0
         self.timer = self.wait[self.phase]
         self.atk = atk
+        self.player = player
 
     def update(self, dt):
         self.timer -= dt
@@ -456,20 +458,24 @@ class Gift_bullet(pygame.sprite.Sprite):
         if self.timer > 0 : return 
         self.phase += 1
         #all animations
-        if self.phase == 1: #stop move
+        if self.phase == 1: #start move
+            vec = array((1 if self.player.drct == 'right' else -1, 0))
+            self.vec = vec*self.speed
+            self.timer = self.wait[self.phase]
+        if self.phase == 2: #stop move
             self.vec = array((0,0))
-            self.timer = self.wait[1]
-        if self.phase == 2: #bang
+            self.timer = self.wait[self.phase]
+        if self.phase == 3: #bang
             self.hp = float('inf')
             self.image = self.bang_image
             self.rect = self.image.get_rect() 
             self.rect.topleft = self.pos - array(self.image.get_size())/2
             return #dont reset timer
-        if self.phase == 3: #1 frame later
+        if self.phase == 4: #1 frame later
             self.hp = 0
             self.rect = pygame.Rect(self.pos - array(self.image.get_size())/2,(1,1))
-            self.timer = self.wait[3]
-        if self.phase == 4: #disappear
+            self.timer = self.wait[self.phase]
+        if self.phase == 5: #disappear
             self.kill()
             return
 
@@ -480,7 +486,8 @@ class Gift(Weapon):
         self.size = loads(config['size'])
         bang_image = pygame.image.load(config['bang_dir']).convert_alpha()
 
-        bang_image = pygame.transform.scale2x(bang_image) #for testing
+        bang_image = pygame.transform.scale2x(bang_image) 
+        bang_image = pygame.transform.scale2x(bang_image)
 
         bang_image.set_alpha(int(config['bang_alpha']))
         self.bang_images = [pygame.transform.scale(bang_image,array(bang_image.get_size())*size) for size in self.size]
@@ -497,11 +504,10 @@ class Gift(Weapon):
         if self.shoot_timer >= 0 : return []
         self.shoot_timer = self.shoot_period[self.level]
 
-        vec = array((1 if self.player.drct == 'right' else -1, 0))
-        vec = vec*self.base_range*self.size[self.level]/self.wait[0]
+        speed = self.base_range*self.size[self.level]/self.wait[1]
 
-        return Gift_bullet(self.image, self.bang_images[self.level], self.wait,
-            self.player.pos.copy(), vec, self.atk[self.level])
+        return Gift_bullet(self.player, self.image, self.bang_images[self.level], self.wait,
+            self.player.pos.copy(), speed, self.atk[self.level])
 
 # LED燈條
 # 會以玩家為中心甩，造成的傷害低

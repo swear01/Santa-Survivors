@@ -61,33 +61,19 @@ def gaming(selected_character):
         if backend.upgrade_menu:
             dt = 0
             upgrade.show()
-        # level_text.set_text(f'{player.level} Levels')
 
         time_elapsed += dt
-        player.time_elapsed = time_elapsed
+        #player.time_elapsed = time_elapsed
 
 
 
         keys = pygame.key.get_pressed()
-        if keys[K_a] and not keys[K_d]:
-            player.move('left', dt)
-            player.turn('left')
-            player.drct = 'left'
-        if keys[K_d] and not keys[K_a]:
-            player.move('right', dt)
-            player.turn('right')
-            player.drct = 'right'
-        if keys[K_s] and not keys[K_w]:
-            player.move('down', dt)
-        if keys[K_w] and not keys[K_s]:
-            player.move('up', dt)
-
 
         enemies.add(spawner.spawn(time_elapsed, dt, player, 5))
 
 
         #update position
-        player.update(time_elapsed, dt) 
+        player.update(keys ,time_elapsed, dt) #include moves
         player.shift_pos(background,(width, height), bullets, enemies, enemy_bullets, drops)
         
         huds.update(time_elapsed,player.enemy_killed)
@@ -105,44 +91,40 @@ def gaming(selected_character):
         for drop in drops:
             drop.update(dt)
 
-        #collision code
-        b_e_collide = pygame.sprite.groupcollide(bullets, enemies, False, False)
+        if dt != 0 : #dt = 0 , no collision
 
-        for bullet, hit_enemies in b_e_collide.items():
-            for enemy in hit_enemies: #bullet may have 0 hp
-                if bullet.hp <= 0 : break
-                if enemy.hp == 0 :              
-                    continue
-                enemy.hp -= bullet.atk
-                bullet.hp -= 1 
+            #collision code
+            b_e_collide = pygame.sprite.groupcollide(bullets, enemies, False, False)
+
+            for bullet, hit_enemies in b_e_collide.items():
+                for enemy in hit_enemies: #bullet may have 0 hp
+                    if bullet.hp <= 0 : break
+                    if enemy.hp == 0 :              
+                        continue
+                    enemy.hp -= bullet.atk
+                    bullet.hp -= 1 
 
 
 
 
-        enemies_atked = pygame.sprite.spritecollide(player, enemies, dokill=False)
-        enemies_atked += pygame.sprite.spritecollide(player, enemy_bullets, dokill=False)
+            enemies_atked = pygame.sprite.spritecollide(player, enemies, dokill=False)
+            enemies_atked += pygame.sprite.spritecollide(player, enemy_bullets, dokill=False)
 
-        for enemy in enemies_atked:
-            if not pygame.sprite.collide_mask(player, enemy) : continue
-            player.hp -= enemy.atk
-            enemy.avoid()
+            for enemy in enemies_atked:
+                if not pygame.sprite.collide_mask(player, enemy) : continue
+                player.hp -= enemy.atk
+                enemy.avoid()
+                
+            drops_absorbed = pygame.sprite.spritecollide(player, drops, dokill=False)
             
-        drops_absorbed = pygame.sprite.spritecollide(player, drops, dokill=False)
-        
-        for drop in drops_absorbed:
-            drop.absorbed()
+            for drop in drops_absorbed:
+                drop.absorbed()
 
 
         manager.update(dt)
 
-        # draw zone
-        background.draw(screen)
-        drops.draw(screen)
-        enemy_bullets.draw(screen)
-        enemies.draw(screen)
-        bullets.draw(screen)
-        huds.show_icons()
-        players.draw(screen) #player is always at the top
+        # draw at last/ player is always on the top
+        backend.draw(screen,background,drops,enemy_bullets,enemies,bullets,players)
         manager.draw_ui(screen)
 
         if backend.upgrade:
