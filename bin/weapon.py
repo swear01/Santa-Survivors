@@ -240,7 +240,7 @@ class Sled(Weapon):
         self.atk = loads(config['atk'])
         self.speed = loads(config['speed'])
         self.bullet_amount = loads(config['bullet_amount'])
-        self.shoot_period = float(config['shoot_period'])
+        self.shoot_period = loads(config['shoot_period'])
         self.shoot_timer = self.shoot_period
         self.bullets = pygame.sprite.Group()
 
