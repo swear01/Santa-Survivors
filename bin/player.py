@@ -128,7 +128,6 @@ class Player(pygame.sprite.Sprite):
 
         return
 
-
     @classmethod
     def xp_to_next_level(cls, level):
         return int(cls.xp_a*(level+1)**cls.xp_b)
