@@ -160,7 +160,7 @@ class Deer_antler(Weapon):
 
 #雪屋 防護罩形式，沒血時會隱藏
 class Igloo_shelter(pygame.sprite.Sprite):
-    def __init__(self, image, player, atk, max_hp, shoot_period, level) -> None:
+    def __init__(self, image, player, atk, max_hp, shoot_period, level, enemy_bullets) -> None:
         super().__init__()
         self.image = image
         self.rect = self.image.get_rect()
@@ -172,10 +172,15 @@ class Igloo_shelter(pygame.sprite.Sprite):
         self.atk = atk
         self.shoot_period = shoot_period #regeneration period
         self.timer = self.shoot_period
+        self.enemy_bullets = enemy_bullets
 
     def update(self, dt):
         self.pos = self.player.pos.copy()
         self.rect.center = self.pos
+        for enemy in pygame.sprite.spritecollide(self, self.enemy_bullets, False):
+            if self.hp < 1 : break
+            enemy.kill()
+            self.hp -= 1
         alpha = 255*(self.hp/self.max_hp)
         self.image.set_alpha(alpha)
         if self.hp == self.max_hp : return #no timer
@@ -183,6 +188,8 @@ class Igloo_shelter(pygame.sprite.Sprite):
         if self.timer > 0 : return
         self.timer += self.shoot_period*self.player.ratio['shoot_period']
         self.hp += 1
+        
+
 
 
 
@@ -200,7 +207,8 @@ class Igloo(Weapon):
     def update(self, dt):
         if not self.bullet.sprite or self.level != self.bullet.sprite.level :
             if self.bullet.sprite : self.bullet.sprite.kill()
-            self.bullet.add(Igloo_shelter(self.image, self.player, self.atk, self.max_hp[self.level], self.shoot_period[self.level], self.level))
+            self.bullet.add(Igloo_shelter(self.image, self.player, self.atk, self.max_hp[self.level], 
+                                          self.shoot_period[self.level], self.level, self.player.enemy_bullets))
             return self.bullet
         return []
 
