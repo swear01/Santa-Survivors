@@ -229,7 +229,6 @@ def init_weapon_icon_show(screen,init_weapon_icons,name):
     
 
 class Upgrade_option():
-
     def __init__(self,screen,manager,option_name,number):
 
         self.screen = screen
@@ -241,11 +240,18 @@ class Upgrade_option():
         self.height = [int(height) for height in config['height'].split('\n')]
         self.selected = False
         self.img = [pygame.image.load(path).convert_alpha() for path in config['img_dirs'].split('\n')]
+        print(option_name,type(option_name))
+        if option_name in weapon_list:
+            self.option_image = pygame.image.load(weapon_config[option_name]['img_dir']).convert_alpha()
+            self.option_image = pygame.transform.scale(self.option_image,(30,30))
+            self.option_text = option_name
+            self.option_name = option_name
+        else:
+            self.option_image = pygame.image.load(buff_config[option_name]['img_dir']).convert_alpha()
+            self.option_image = pygame.transform.scale(self.option_image,(30,30))
+            self.option_text = option_name
+            self.option_name = option_name
 
-        self.option_image = pygame.image.load(weapon_config[option_name]['img_dir']).convert_alpha()
-        self.option_image = pygame.transform.scale(self.option_image,(30,30))
-        self.option_text = option_name
-        self.option_name = option_name
         for i in range(len(self.img)):
             self.img[i] = pygame.transform.scale(self.img[i],(self.width[i],self.height[i]))
 
@@ -502,14 +508,15 @@ class Upgrade():
     def __init__(self,screen, manager, player, backend):
         self.selected = 0
         self.player = player
-        result = upgrade(weapon_list,[],player.weapons,[])
+        result = upgrade(weapon_list,available_buffs,player.weapons,player.buffs)
+        print(result)
         self.backend = backend
         self.maxlevel = False
         if result != 0:
             self.upgrade_option0 = Upgrade_option(screen, manager, result[0], 0)
-            self.upgrade_option1 = Upgrade_option(screen, manager, result[1],1)
+            self.upgrade_option1 = Upgrade_option(screen, manager, result[1], 1)
             self.upgrade_option2 = Upgrade_option(screen, manager, result[2], 2)
-            self.upgrade_option3 = Upgrade_option(screen, manager, result[3],3)
+            self.upgrade_option3 = Upgrade_option(screen, manager, result[3], 3)
             self.options = [self.upgrade_option0,self.upgrade_option1,self.upgrade_option2,self.upgrade_option3]
         else:
             self.maxlevel = True
@@ -524,11 +531,18 @@ class Upgrade():
                 for option in self.options:
                     del option
                 self.backend.upgrade_menu = False
-                for weapon in self.player.weapons:
-                    if  weapon.name == self.options[self.selected].option_name:
-                        weapon.level += 1
-                        return 0
-                self.player.weapons += [weapon_list[self.options[self.selected].option_name](self.player)]
+                if self.options[self.selected].option_name in weapon_list:
+                    for weapon in self.player.weapons:
+                        if  weapon.name == self.options[self.selected].option_name:
+                            weapon.level += 1
+                            return 0
+                    self.player.weapons += [weapon_list[self.options[self.selected].option_name](self.player)]
+                else:
+                    for buff in self.player.buffs:
+                        if  buff.name == self.options[self.selected].option_name:
+                            buff.level += 1
+                            return 0
+                    self.player.buffs += [available_buffs[self.options[self.selected].option_name]]
         else:
             self.backend.upgrade_menu = False
            

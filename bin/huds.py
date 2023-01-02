@@ -32,8 +32,9 @@ class Buff_icon():
         self.y = int(config['buff_icon']['y'])
         self.width = int(config['buff_icon']['width'])
         self.height = int(config['buff_icon']['height'])
+        self.name = 'weapon_icon'
         if buff != "buff_icon":
-            self.image = pygame.transform.scale(self.image,(self.width,self.height))
+            self.image = pygame.transform.scale(buff.image,(self.width,self.height))
         else:
             self.image = pygame.image.load(config['buff_icon']['img_dir']).convert_alpha()
             self.image = pygame.transform.scale(self.image,(self.width,self.height))
@@ -85,6 +86,9 @@ class Huds:
         if self.weapons < len(self.player.weapons):
             self.weapon_icons[self.weapons] = Weapon_icon(self.screen,self.player.weapons[self.weapons],self.weapons)
             self.weapons += 1
+        if self.buffs < len(self.player.buffs):
+            self.buff_icons[self.buffs] = Buff_icon(self.screen,self.player.buffs[self.buffs],self.buffs)
+            self.buffs += 1
 
     def kill(self):
         self.timer.kill()

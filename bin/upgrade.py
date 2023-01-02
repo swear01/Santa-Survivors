@@ -55,6 +55,7 @@ def upgrade(all_weapons,all_buffs,selected_weapons,selected_buffs):
             result += [weights[0]]
             if i+3<len(weights):
                 i+=3
+        print(result)
         return result
     else:
         return 0
