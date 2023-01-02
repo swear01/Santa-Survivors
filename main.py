@@ -45,7 +45,7 @@ def gaming(selected_character):
     players = pygame.sprite.Group(player)
     r,g,b = 128,128,128 #for game over animation
 
-    spawner = Spawner()
+    spawner = Spawner(player)
     huds = Huds(screen,manager, width, height, player)
 
     while True:
@@ -81,7 +81,7 @@ def gaming(selected_character):
 
         keys = pygame.key.get_pressed()
 
-        enemies.add(spawner.spawn(time_elapsed, dt, player, 5))
+        enemies.add(spawner.spawn(time_elapsed, dt))
 
 
         #update position
@@ -109,14 +109,15 @@ def gaming(selected_character):
             b_e_collide = pygame.sprite.groupcollide(bullets, enemies, False, False)
 
             for bullet, hit_enemies in b_e_collide.items():
-                for enemy in hit_enemies: #bullet may have 0 hp
+                for enemy in hit_enemies: #bullaet may have 0 hp
                     if bullet.hp <= 0 : break
-                    if enemy.hp == 0 :              
+                    if enemy.hp <= 0 :    
+                        enemy.death()          
                         continue
                     enemy.hp -= bullet.atk*player.ratio['atk']
                     bullet.hp -= 1 
-                    if type(bullet) == Deer_antler_bullet or type(bullet) == Igloo_shelter :
-                        enemy.avoid()
+                    # if type(bullet) == Deer_antler_bullet or type(bullet) == Igloo_shelter :
+                    #     enemy.avoid()
 
             for enemy1, enemy2s in pygame.sprite.groupcollide(enemies,enemies, False, False, pygame.sprite.collide_circle_ratio(0.5)).items():
                 for enemy2 in enemy2s:

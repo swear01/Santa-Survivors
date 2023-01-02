@@ -70,7 +70,7 @@ class Snowball(Weapon):
         self.atk = loads(config['atk'])
         self.bullet_amount = loads(config['bullet_amount'])
         self.shoot_period = loads(config['shoot_period'])
-        self.shoot_timer = self.calc_shoot_period()
+        self.shoot_timer = 0
 
     def update(self, dt):
         self.shoot_timer -= dt
@@ -411,7 +411,7 @@ class Mustache(Weapon):
     def __init__(self, player):
         super().__init__('Mustache', player)
         config = weapon_config[self.name]
-        self.shoot_period = float(config['shoot_period']) #無縫接軌
+        self.shoot_period = loads(config['shoot_period']) #無縫接軌
         self.shoot_timer = 0
         self.speed = loads(config['speed'])
         self.atk = loads(config['atk'])
