@@ -121,21 +121,21 @@ class Brownbear(Enemy):
     def __init__(self, pos, player):
         super().__init__('Brownbear', pos, player)
 
-class Kids1(Enemy):
+class Kid1(Enemy):
     def __init__(self, pos, player):
-        super().__init__('Kids1', pos, player)
+        super().__init__('Kid1', pos, player)
         
-class Kids2(Enemy):
+class Kid2(Enemy):
     def __init__(self, pos, player):
-        super().__init__('Kids2', pos, player)
+        super().__init__('Kid2', pos, player)
         
-class Kids3(Enemy):
+class Kid3(Enemy):
     def __init__(self, pos, player):
-        super().__init__('Kids3', pos, player)
+        super().__init__('Kid3', pos, player)
         
-class Kids4(Enemy):
+class Kid4(Enemy):
     def __init__(self, pos, player):
-        super().__init__('Kids4', pos, player) 
+        super().__init__('Kid4', pos, player) 
 class Seal(Enemy):
     def __init__(self, pos, player):
         super().__init__('Seal', pos, player)
