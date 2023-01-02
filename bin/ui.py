@@ -622,6 +622,7 @@ class Upgrade():
                             buff.level += 1
                             return 0
                     self.player.buffs += [available_buffs[self.options[self.selected].option_name]]
+                self.player.calc_stats() #make buffs work
         else:
             self.backend.upgrade_menu = False
            
