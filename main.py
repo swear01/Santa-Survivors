@@ -103,9 +103,18 @@ def gaming(selected_character):
                         continue
                     enemy.hp -= bullet.atk*player.ratio['atk']
                     bullet.hp -= 1 
+                    if type(bullet) == Deer_antler_bullet or Igloo_shelter :
+                        enemy.avoid()
 
-
-
+            for enemy1, enemy2s in pygame.sprite.groupcollide(enemies,enemies, False, False, pygame.sprite.collide_circle_ratio(0.5)).items():
+                for enemy2 in enemy2s:
+                    if enemy1 == enemy2 : continue
+                    drct = enemy1.pos - enemy2.pos
+                    if not norm(drct) : continue
+                    drct = drct/norm(drct)*2.5
+                    enemy1.pos += drct
+                    enemy2.pos -= drct
+                    
 
             enemies_atked = pygame.sprite.spritecollide(player, enemies, dokill=False)
             enemies_atked += pygame.sprite.spritecollide(player, enemy_bullets, dokill=False)

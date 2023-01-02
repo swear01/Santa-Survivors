@@ -328,7 +328,7 @@ class Sled_dog_bullet(pygame.sprite.Sprite):
         self.atk = atk
         self.atk_period = atk_period
         self.atk_timer = 0
-        self.target_enemy = pygame.sprite.Group()
+        self.target_enemy = pygame.sprite.GroupSingle()
 
     def update(self, dt):
         if norm(self.pos - self.player.pos) > self.max_distance:
@@ -337,8 +337,8 @@ class Sled_dog_bullet(pygame.sprite.Sprite):
             nearest_enemy = self.nearest_enemy(self.player.enemies)
             if not nearest_enemy : return
             self.target_enemy.add(nearest_enemy)
-        if norm(self.pos - self.target_enemy.sprites()[0].pos) > 10 : 
-            vec = self.target_enemy.sprites()[0].pos - self.pos
+        if norm(self.pos - self.target_enemy.sprite.pos) > 10 : 
+            vec = self.target_enemy.sprite.pos - self.pos
             vec *= self.speed/norm(vec)
             self.pos += vec*dt
 
