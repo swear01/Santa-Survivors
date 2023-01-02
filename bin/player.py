@@ -28,11 +28,12 @@ class Player(pygame.sprite.Sprite):
     xp_a = float(player_config['common']['xp_a'])
     xp_b = float(player_config['common']['xp_b'])
 
-    def __init__(self, name, pos, backend, weapon_list, enemies):
+    def __init__(self, name, pos, backend, weapon_list, enemies, enemy_bullets):
         super().__init__()
         self.name = name
         self.backend = backend
         self.enemies = enemies
+        self.enemy_bullets = enemy_bullets
         self.config = player_config[self.name]
         self.visible = True
         self.images = [pygame.image.load(path).convert_alpha() for path in self.config['img_dirs'].split('\n')]
