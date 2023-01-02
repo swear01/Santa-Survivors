@@ -28,7 +28,9 @@ def scale(image, ratio):
 class Drop(pygame.sprite.Sprite, metaclass=ABCMeta):
     def __init__(self, name, pos, player):
         super().__init__()
-        self.image = image
+        self.name = name
+        config = eneny_config[self.name]
+        self.image = pygame.image.load(config['img_dir']).convert_alpha()
         self.rect = self.image.get_rect()
         self.pos = pos
         self.player = player
@@ -49,9 +51,9 @@ class Xporb(Drop):
         self.kill()
         self.player.xp += self.xp*self.player.ratio['xp']
     
-class Coin(Drop):
+class Gold(Drop):
     def __init__(self, pos, player, gold):
-        super().__init__('Xporb', pos, player)
+        super().__init__('Gold', pos, player)
         self.gold = gold
         
     def absorbed(self):
@@ -87,7 +89,8 @@ class Enemy(pygame.sprite.Sprite, metaclass=ABCMeta):
         drops = []
         drops.append(Xporb(self.pos.copy(), self.player, self.xp))
         if random() < 0.1 :
-            drops.append(Gold(self.pos.copy(), self.player, 1))
+            pos = self.pos + array((random(),random()))*30
+            drops.append(Gold(pos, self.player, 1))
         return drops
 
 
