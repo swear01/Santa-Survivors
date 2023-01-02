@@ -54,6 +54,8 @@ def gaming(selected_character):
                     backend.game_over = pause.choose(event)
                 if backend.upgrade_menu:
                     upgrade.choose(event)
+                    for weapon in player.weapons:
+                        print(weapon.name,weapon.level)
 
 
         dt = clock.tick(FPS)/1000

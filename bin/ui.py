@@ -142,7 +142,6 @@ class Upgrade_option():
         self.width = [int(width) for width in config['width'].split('\n')]
         self.height = [int(height) for height in config['height'].split('\n')]
         self.selected = False
-        # self.option = option
         self.img = [pygame.image.load(path).convert_alpha() for path in config['img_dirs'].split('\n')]
 
         self.option_image = pygame.image.load(weapon_config[option_name]['img_dir']).convert_alpha()
@@ -164,7 +163,6 @@ class Upgrade_option():
             self.screen.blit(self.img[3],(self.x,self.y))
             self.screen.blit(self.option_image,(self.x,self.y))
             self.screen.blit(self.img[5],(self.x,self.y))
-
 
         else:
             self.screen.blit(self.img[0],(self.x,self.y))
@@ -374,9 +372,9 @@ class Pause():
         self.options = [self.reusme,self.quit]
 
     def choose(self,event):
-        if event.key == K_UP and self.selected>0:
+        if event.key == K_UP or event.key == K_w and self.selected>0:
             self.selected-=1
-        if event.key == K_DOWN and self.selected<len(self.options)-1:
+        if event.key == K_DOWN or event.key == K_s and self.selected<len(self.options)-1:
             self.selected+=1
         if event.key == K_RETURN:
             for option in self.options:
@@ -409,20 +407,22 @@ class Upgrade():
         self.upgrade_option1 = Upgrade_option(screen, manager, result[1],1)
         self.upgrade_option2 = Upgrade_option(screen, manager, result[2], 2)
         self.upgrade_option3 = Upgrade_option(screen, manager, result[3],3)
-
         self.backend = backend
         self.options = [self.upgrade_option0,self.upgrade_option1,self.upgrade_option2,self.upgrade_option3]
 
     def choose(self,event):
-        if event.key == K_UP and self.selected>0:
+        if event.key == K_UP or event.key == K_w and self.selected>0:
             self.selected-=1
-        if event.key == K_DOWN and self.selected<len(self.options)-1:
+        if event.key == K_DOWN or event.key == K_s and self.selected<len(self.options)-1:
             self.selected+=1
         if event.key == K_RETURN:
             for option in self.options:
                 del option
-
             self.backend.upgrade_menu = False
+            for weapon in self.player.weapons:
+                if  weapon.name == self.options[self.selected].option_name:
+                    weapon.level += 1
+                    return 0
             self.player.weapons += [weapon_list[self.options[self.selected].option_name](self.player)]
            
 
