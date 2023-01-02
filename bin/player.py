@@ -7,6 +7,7 @@ from pygame.locals import *  # CONSTS
 import json
 
 from .weapon import *
+from .buff import type_buff
 
 
 player_config = ConfigParser(interpolation=ExtendedInterpolation())
@@ -41,25 +42,20 @@ class Player(pygame.sprite.Sprite):
         self.movable_dir = ['left', 'right', 'down', 'up']
         self.weapons = [weapon_list[self.config['init_weapon']](self)]
         self.buffs = []
-       
+        self.base = {'atk':float(self.config['atk']),
+                'hp':float(self.config['hp']),
+                'speed':float(self.config['speed']),
+                'hp_r':float(self.config['hp_r'])}
 
-        self.drct = 'left'        
-        self.atk_ratio = float(self.config['atk_ratio'])
-        self.max_hp = float(self.config['init_health'])
+        self.ratio = {} #where others get value
+        self.calc_stats()
         self.hp = self.max_hp
-        self.hp_r = float(self.config['hp_r'])
-        self.speed = float(self.config['speed'])
+        self.drct = 'left'        
         self.absorb_range = float(self.config['absorb_range'])
         self.xp = 0
         self.level = 0
         self.enemy_killed = 0
         self.gold_obtained = 0 
-
-        # do this for health_bar work properly
-        self.health_capacity = self.max_hp
-        self.current_health = self.hp
-
-        self.calc_stats()
 
     def move(self, keys, dt):
         vec = array((0,0))
@@ -89,14 +85,12 @@ class Player(pygame.sprite.Sprite):
         self.move(keys, dt)
         self.image = self.images[int(time_elapsed+0.5) % len(self.images)][self.drct]
 
+        #update stats
+        self.hp += self.hp_r * dt
+        self.hp = min(self.hp, self.max_hp)
+
         self.rect.center = self.pos #self.rect.center is tuple 
         self.mask = pygame.mask.from_surface(self.image)
-
-
-
-        # do this for health_bar work properly
-        self.health_capacity = self.max_hp
-        self.current_health = self.hp
 
     def upgrade(self):
         self.xp -= self.xp_to_next_level(self.level)
@@ -138,8 +132,17 @@ class Player(pygame.sprite.Sprite):
         return int(10*(level+1)**1.3)
 
     def calc_stats(self):
-        #TO-DO
-        pass
+        for key in type_buff.keys():
+            self.ratio[key] = 1
+        for key, value in self.base.items():
+            self.ratio[key] *= value
+        for buff in self.buffs:
+            self.ratio[buff.type] *= (1+buff.effect)*buff.level
+
+        self.max_hp = self.ratio['hp']
+        self.hp_r = self.ratio['hp_r']
+        self.speed = self.ratio['speed']
+        return
 
     def nearest_enemy(self):
         if not self.enemies : return None

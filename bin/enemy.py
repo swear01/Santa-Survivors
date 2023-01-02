@@ -20,6 +20,9 @@ def str_to_class(classname):
 def out_of_screen(pos):
     return pos[0] > width+100 or pos[0] < -100 or pos[1] > height+100 or pos[1] < -100 
 
+def scale(image, ratio):
+    return pygame.transform.scale(image, array(image.get_size())*ratio)
+
 class Drop(pygame.sprite.Sprite, metaclass=ABCMeta):
     def __init__(self, pos, player):
         super().__init__()
@@ -42,12 +45,12 @@ class Xporb(Drop):
         if norm(self.pos-self.player.pos) < self.player.absorb_range :
             dist = norm(self.pos-self.player.pos)
             drct = (self.player.pos-self.pos)/dist
-            self.pos += 10000/dist*drct*dt
+            self.pos += 1000*self.player.absorb_range/dist*drct*dt
         self.rect.center = self.pos
         
     def absorbed(self):
         self.kill()
-        self.player.xp += self.xp
+        self.player.xp += self.xp*self.player.ratio['xp']
     
 
 class Enemy(pygame.sprite.Sprite, metaclass=ABCMeta):
@@ -104,7 +107,11 @@ class Enemy(pygame.sprite.Sprite, metaclass=ABCMeta):
 class Polarbear(Enemy):
     def __init__(self, pos, player):
         super().__init__('Polarbear', pos, player)
+        self.images = [scale(image, 0.6) for image in self.images]
 
+class Kids(Enemy):
+    def __init__(self, pos, player):
+        super().__init__('Kids', pos, player)
      
 class Snowman_ball(Enemy):
     #images = [img.subsurface(img.get_bounding_rect()) for img in images] #if images have transparent skirts

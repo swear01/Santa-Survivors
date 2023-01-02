@@ -11,6 +11,7 @@ class Buff():
     def __init__(self, buff_name):
         self.name = buff_name
         config:dict = buff_config[self.name]
+        self.type = config['type']
         self.max_level = int(config['max_level'])
         self.effect = float(config['effect'])
         self.image = pygame.image.load(config['img_dir'])
@@ -22,4 +23,5 @@ class Buff():
 
 available_names = buff_config.sections()
 
-available_buffs = {name:Buff(name) for name in available_names}
+available_buffs:dict[str,Buff] = {name:Buff(name) for name in available_names}
+type_buff = {buff.type : buff for buff in available_buffs.values()}

@@ -101,7 +101,7 @@ def gaming(selected_character):
                     if bullet.hp <= 0 : break
                     if enemy.hp == 0 :              
                         continue
-                    enemy.hp -= bullet.atk
+                    enemy.hp -= bullet.atk*player.ratio['atk']
                     bullet.hp -= 1 
 
 

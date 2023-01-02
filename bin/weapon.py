@@ -1,4 +1,4 @@
-from math import atan2, cos, dist, inf, pi, sin, degrees
+from math import atan2, cos, pi, sin, degrees
 
 import pygame
 from numpy import array, sqrt
@@ -36,6 +36,8 @@ class Weapon:
     def can_upgrade(self):
         return self.level < self.max_level
 
+    def calc_shoot_period(self):
+        return self.shoot_period[self.level]*self.player.ratio['shoot_period']
 class Snowball_bullet(pygame.sprite.Sprite):
     def __init__(self, image, pos, vec, atk, hp=1):
 
@@ -70,9 +72,6 @@ class Snowball(Weapon):
         self.shoot_period = loads(config['shoot_period'])
         self.shoot_timer = self.calc_shoot_period()
 
-    def calc_shoot_period(self):
-        return self.shoot_period[self.level]
-
     def update(self, dt):
         self.shoot_timer -= dt
         if self.shoot_timer > 0 : return []
@@ -103,17 +102,12 @@ class Aim_snowball(Weapon):
         self.atk = loads(config['atk'])
         self.bullet_hp = loads(config['bullet_hp'])
         self.shoot_period = loads(config['shoot_period'])
-        self.shoot_timer = self.calc_shoot_period()
-
-    def calc_shoot_period(self):
-        return self.shoot_period[self.level]
-
+        self.shoot_timer = 0
 
     def update(self, dt):
         self.shoot_timer -= dt
         if self.shoot_timer > 0 : return []
         self.shoot_timer += self.calc_shoot_period()
-
         return self.shoot()
 
     def shoot(self):
@@ -165,7 +159,7 @@ class Deer_antler(Weapon):
 
 #雪屋 防護罩形式，沒血時會隱藏
 class Igloo_shelter(pygame.sprite.Sprite):
-    def __init__(self, image, player, atk, max_hp, regeneration_time, level) -> None:
+    def __init__(self, image, player, atk, max_hp, shoot_period, level) -> None:
         super().__init__()
         self.image = image
         self.rect = self.image.get_rect()
@@ -175,8 +169,8 @@ class Igloo_shelter(pygame.sprite.Sprite):
         self.level = level
         self.pos = self.player.pos
         self.atk = atk
-        self.regeneration_time = regeneration_time
-        self.timer = self.regeneration_time
+        self.shoot_period = shoot_period #regeneration period
+        self.timer = self.shoot_period
 
     def update(self, dt):
         self.pos = self.player.pos.copy()
@@ -186,7 +180,7 @@ class Igloo_shelter(pygame.sprite.Sprite):
         if self.hp == self.max_hp : return #no timer
         self.timer -= dt
         if self.timer > 0 : return
-        self.timer += self.regeneration_time
+        self.timer += self.shoot_period*self.player.ratio['shoot_period']
         self.hp += 1
 
 
@@ -199,12 +193,12 @@ class Igloo(Weapon):
         config = weapon_config[self.name]
         self.atk = int(config['atk'])
         self.max_hp = loads(config['max_hp'])
-        self.regeneration_time = loads(config['regeneration_time'])
+        self.shoot_period = loads(config['shoot_period'])
         self.bullet = pygame.sprite.GroupSingle()
 
     def update(self, dt):
         if not self.bullet.sprite or self.level != self.bullet.sprite.level :
-            self.bullet.add(Igloo_shelter(self.image, self.player, self.atk, self.max_hp[self.level], self.regeneration_time[self.level], self.level))
+            self.bullet.add(Igloo_shelter(self.image, self.player, self.atk, self.max_hp[self.level], self.shoot_period[self.level], self.level))
             return self.bullet
         return []
 
@@ -306,7 +300,7 @@ class Shovel(Weapon):
         if norm(vec) > self.max_track_distance : return []
 
         #success shoot
-        self.shoot_timer = self.shoot_period[self.level]
+        self.shoot_timer = self.calc_shoot_period()
         angle = degrees(atan2(*vec))
         image = pygame.transform.rotate(self.image, angle)
 
@@ -373,13 +367,12 @@ class Sled_dog(Weapon):
         self.speed = loads(config['speed'])
         self.atk_period = float(config['atk_period'])
         self.max_distance = int(config['max_distance'])
-        self.bullets = pygame.sprite.Group()
+        self.bullets = pygame.sprite.GroupSingle()
 
     def update(self, dt):
-        if len(self.bullets) >= 1:
-            if self.bullets.sprites()[0].atk == self.atk[self.level]:
+        if self.bullets.sprite:
+            if self.bullets.sprite.atk == self.atk[self.level]:
                 return []
-            self.bullets.sprites[0].kill()
         sled_dog_bullet = Sled_dog_bullet(self.image, self.player, 
             self.speed[self.level], self.atk[self.level], self.atk_period, self.max_distance)
         self.bullets.add(sled_dog_bullet)
@@ -425,8 +418,8 @@ class Mustache(Weapon):
     def update(self, dt):
         self.shoot_timer -= dt
         if self.shoot_timer > 0 : return []
-        self.shoot_timer += self.shoot_period
-        angular_speed = 2*pi/self.shoot_period
+        self.shoot_timer += self.calc_shoot_period()
+        angular_speed = 2*pi/self.calc_shoot_period()
         return Mustache_Bullet(self.image,self.player,self.speed[self.level],
             angular_speed, self.hp, self.atk[self.level])
 
@@ -502,7 +495,7 @@ class Gift(Weapon):
     def update(self, dt):
         self.shoot_timer -= dt
         if self.shoot_timer >= 0 : return []
-        self.shoot_timer = self.shoot_period[self.level]
+        self.shoot_timer = self.calc_shoot_period()
 
         speed = self.base_range*self.size[self.level]/self.wait[1]
 
@@ -555,8 +548,8 @@ class LED(Weapon):
     def update(self, dt):
         self.shoot_timer -= dt
         if self.shoot_timer > 0 : return []
-        self.shoot_timer += self.shoot_period[self.level]
-        angular_speed = 2*pi/self.shoot_period[self.level]
+        self.shoot_timer += self.calc_shoot_period()
+        angular_speed = 2*pi/self.calc_shoot_period()
         bullets = pygame.sprite.Group()
         for i in range(self.bullet_amount[self.level]):
             bullets.add(LED_Bullet(self.images[i],self.player,
@@ -595,9 +588,6 @@ class Candycane(Weapon):
         self.shoot_period = loads(config['shoot_period'])
         self.shoot_timer = 0
         self.speed = int(config['speed'])
-
-    def calc_shoot_period(self):
-        return self.shoot_period[self.level]
 
     def update(self, dt):
         self.shoot_timer -= dt
@@ -661,7 +651,7 @@ class Snowflake(Weapon):
     def update(self, dt):
         self.shoot_timer -= dt
         if self.shoot_timer >= 0 : return []
-        self.shoot_timer += self.shoot_period[self.level]
+        self.shoot_timer += self.calc_shoot_period()
 
         x = random()*(width-200)+100
         y = random()*(height-200)+100
