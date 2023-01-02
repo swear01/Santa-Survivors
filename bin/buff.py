@@ -58,7 +58,7 @@ class Strong(Buff):
 
 available_names = buff_config.sections()
 
-available_buffs:dict[str,Buff] = {'Fortune':Fortune, 'Dice':Dice, 'Muscle':Muscle, 'Nike':Nike,
+available_buffs:dict[str,Buff] = {'Fortune':Fortune, 'Muscle':Muscle, 'Nike':Nike,
                                   'Warming':Warming, 'Hell':Hell, 'WD_40':WD_40, 'Wise':Wise, 'Strong':Strong}
-type_buff :dict[str,Buff] = {'gold':Fortune, 'reroll':Dice, 'atk':Muscle, 'speed':Nike,
+type_buff :dict[str,Buff] = {'gold':Fortune, 'atk':Muscle, 'speed':Nike,
                                   'hp_r':Warming, 'enemy_period':Hell, 'shoot_period':WD_40, 'xp':Wise, 'hp':Strong}
