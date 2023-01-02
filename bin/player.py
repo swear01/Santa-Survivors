@@ -129,7 +129,7 @@ class Player(pygame.sprite.Sprite):
 
     @staticmethod
     def xp_to_next_level(level):
-        return int(10*(level+1)**1.3)
+        return int(2*(level+1)**0.1)
 
     def calc_stats(self):
         for key in type_buff.keys():

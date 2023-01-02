@@ -15,9 +15,9 @@ class Weapon_icon():
         self.y = int(config['weapon_icon']['y'])
         self.width = int(config['weapon_icon']['width'])
         self.height = int(config['weapon_icon']['height'])
+        self.name = 'weapon_icon'
         if weapon != "weapon_icon":
-            self.image = pygame.image.load(weapon.image).convert_alpha()
-            self.image = pygame.transform.scale(self.image,(self.width,self.height))
+            self.image = pygame.transform.scale(weapon.image,(self.width,self.height))
         else:
             self.image = pygame.image.load(config['weapon_icon']['img_dir']).convert_alpha()
             self.image = pygame.transform.scale(self.image,(self.width,self.height))
@@ -32,7 +32,6 @@ class Buff_icon():
         self.width = int(config['buff_icon']['width'])
         self.height = int(config['buff_icon']['height'])
         if buff != "buff_icon":
-            self.image = pygame.image.load(buff.image).convert_alpha()
             self.image = pygame.transform.scale(self.image,(self.width,self.height))
         else:
             self.image = pygame.image.load(config['buff_icon']['img_dir']).convert_alpha()
@@ -44,6 +43,7 @@ class Huds:
     def __init__(self, screen, manager, width, height, player):
         self.manager = manager
         self.player = player
+        self.screen = screen
         xp_bar_width = width-2*int(config['xp_bar']['margin'])
         
         self.xp_bar = pygame_gui.elements.UIStatusBar(
@@ -70,24 +70,20 @@ class Huds:
             anchors={'right':'right','top_target':self.xp_bar}, text = 'kills:0', manager=manager,
             object_id=ObjectID('#kill_counter')
             )
-        self.weapon_icon0 = Weapon_icon(screen,'weapon_icon',0)
-        self.weapon_icon1 = Weapon_icon(screen,'weapon_icon',1)
-        self.weapon_icon2 = Weapon_icon(screen,'weapon_icon',2)
-        self.weapon_icon3 = Weapon_icon(screen,'weapon_icon',3)
-        self.buff_icon0 = Buff_icon(screen,'buff_icon',0)
-        self.buff_icon1 = Buff_icon(screen,'buff_icon',1)
-        self.buff_icon2 = Buff_icon(screen,'buff_icon',2)
-        self.buff_icon3 = Buff_icon(screen,'buff_icon',3)
-        self.icons = [self.weapon_icon0, self.weapon_icon1, self.weapon_icon2, self.weapon_icon3,
-                        self.buff_icon0, self.buff_icon1, self.buff_icon2, self.buff_icon3]
-
+        self.weapon_icons = [Weapon_icon(screen,'weapon_icon',0), Weapon_icon(screen,'weapon_icon',1), Weapon_icon(screen,'weapon_icon',2), Weapon_icon(screen,'weapon_icon',3)]
+        self.buff_icons = [Buff_icon(screen,'buff_icon',0), Buff_icon(screen,'buff_icon',1), Buff_icon(screen,'buff_icon',2), Buff_icon(screen,'buff_icon',3)]
+        self.weapons = 0
+        self.buffs = 0
         #self.timer.set_text_scale(1)
         
         
     def update(self, time_elapsed,kill_counts):
         self.timer.set_text(f'{(int(time_elapsed // 60)):02d} : {(int(time_elapsed) % 60):02d}')
         self.kill_counter.set_text(f'kills:{kill_counts}')
-    
+        if self.weapons < len(self.player.weapons):
+            self.weapon_icons[self.weapons] = Weapon_icon(self.screen,self.player.weapons[self.weapons],self.weapons)
+            self.weapons += 1
+
     def kill(self):
         self.timer.kill()
         self.hp_bar.kill()
@@ -95,6 +91,8 @@ class Huds:
         self.kill_counter.kill()
        
     def show_icons(self):
-            for icon in self.icons:
+            for icon in self.weapon_icons:
+                icon.show()
+            for icon in self.buff_icons:
                 icon.show()
 
