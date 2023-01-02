@@ -28,10 +28,10 @@ def scale(image, ratio):
 class Drop(pygame.sprite.Sprite, metaclass=ABCMeta):
     def __init__(self, pos, player):
         super().__init__()
-        self.image = pygame.Surface([6,6])
+        self.image = pygame.Surface((6,6))
         self.image.fill("#ffff00")
         self.rect = self.image.get_rect()
-        self.pos = array(pos)
+        self.pos = pos
         self.player = player
         
     @abstractmethod
@@ -39,15 +39,15 @@ class Drop(pygame.sprite.Sprite, metaclass=ABCMeta):
         pass
 
 class Xporb(Drop):
-    def __init__(self, pos, player, xp=1):
+    def __init__(self, pos, player, xp):
         super().__init__(pos, player)
         self.xp = xp
         
     def update(self, dt):
-        if norm(self.pos-self.player.pos) < self.player.absorb_range :
+        if norm(self.pos-self.player.pos) <= self.player.absorb_range :
             dist = norm(self.pos-self.player.pos)
             drct = (self.player.pos-self.pos)/dist
-            self.pos += 1000*self.player.absorb_range/dist*drct*dt
+            self.pos += 100*self.player.absorb_range/dist*drct*dt
         self.rect.center = self.pos
         
     def absorbed(self):
@@ -65,6 +65,7 @@ class Enemy(pygame.sprite.Sprite, metaclass=ABCMeta):
         self.atk = float(self.config['atk'])
         self.max_hp = float(self.config['max_hp'])
         self.speed = float(self.config['speed'])
+        self.xp = float(self.config['xp'])
         self.images = [pygame.image.load(path).convert_alpha() for path in self.config['img_dirs'].split('\n')]
         self.image = self.images[0]
         self.rect = self.image.get_rect()
@@ -81,7 +82,9 @@ class Enemy(pygame.sprite.Sprite, metaclass=ABCMeta):
         self.kill()
         self.player.enemy_killed += 1
         drops = []
-        drops.append(Xporb(self.pos, self.player))
+        drops.append(Xporb(self.pos.copy(), self.player, self.xp))
+        if random() < 0.1 :
+            drops.append()
         return drops
 
 

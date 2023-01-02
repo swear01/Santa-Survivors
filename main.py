@@ -115,7 +115,7 @@ def gaming(selected_character):
                         continue
                     enemy.hp -= bullet.atk*player.ratio['atk']
                     bullet.hp -= 1 
-                    if type(bullet) == Deer_antler_bullet or Igloo_shelter :
+                    if type(bullet) == Deer_antler_bullet or type(bullet) == Igloo_shelter :
                         enemy.avoid()
 
             for enemy1, enemy2s in pygame.sprite.groupcollide(enemies,enemies, False, False, pygame.sprite.collide_circle_ratio(0.5)).items():
