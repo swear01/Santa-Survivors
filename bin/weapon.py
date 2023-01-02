@@ -153,6 +153,7 @@ class Deer_antler(Weapon):
 
     def update(self, dt):
         if not self.bullet.sprite or self.level != self.bullet.sprite.level :
+            if self.bullet.sprite : self.bullet.sprite.kill()
             self.bullet.add(Deer_antler_bullet(self.image, self.player, self.atk[self.level], self.level))
             return self.bullet
         return []
@@ -198,6 +199,7 @@ class Igloo(Weapon):
 
     def update(self, dt):
         if not self.bullet.sprite or self.level != self.bullet.sprite.level :
+            if self.bullet.sprite : self.bullet.sprite.kill()
             self.bullet.add(Igloo_shelter(self.image, self.player, self.atk, self.max_hp[self.level], self.shoot_period[self.level], self.level))
             return self.bullet
         return []
@@ -373,10 +375,10 @@ class Sled_dog(Weapon):
         if self.bullets.sprite:
             if self.bullets.sprite.atk == self.atk[self.level]:
                 return []
-        sled_dog_bullet = Sled_dog_bullet(self.image, self.player, 
-            self.speed[self.level], self.atk[self.level], self.atk_period, self.max_distance)
-        self.bullets.add(sled_dog_bullet)
-        return [sled_dog_bullet]
+            self.bullets.sprite.kill()
+        self.bullets.add(Sled_dog_bullet(self.image, self.player, 
+            self.speed[self.level], self.atk[self.level], self.atk_period, self.max_distance))
+        return self.bullets
 
 # 聖誕老人的鬍子
 # 鬍子定軌跡的在玩家上下方移動
