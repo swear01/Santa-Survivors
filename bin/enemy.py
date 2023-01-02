@@ -2,8 +2,10 @@ import sys
 from abc import ABCMeta, abstractmethod
 from bisect import bisect_right
 from configparser import ConfigParser, ExtendedInterpolation
-from random import random, randrange
+from random import random, uniform
+from math import pi, cos, sin
 
+import json
 import pygame
 from numpy import array
 from numpy.linalg import norm
@@ -63,8 +65,6 @@ class Enemy(pygame.sprite.Sprite, metaclass=ABCMeta):
         self.atk = float(self.config['atk'])
         self.max_hp = float(self.config['max_hp'])
         self.speed = float(self.config['speed'])
-        #self.width = int(config['width'])
-        #self.height = int(config['height'])
         self.images = [pygame.image.load(path).convert_alpha() for path in self.config['img_dirs'].split('\n')]
         self.image = self.images[0]
         self.rect = self.image.get_rect()
@@ -95,9 +95,9 @@ class Enemy(pygame.sprite.Sprite, metaclass=ABCMeta):
         self.image = self.images[int(time_elapsed) % len(self.images)]
         return [] #for compability
 
-    def avoid(self, knockback=20):
+    def avoid(self, knockback=200):
         drct = self.pos - self.player.pos
-        drct /= norm(drct)
+        drct =  drct / norm(drct)
         self.pos += drct*knockback
 
     
@@ -107,12 +107,30 @@ class Enemy(pygame.sprite.Sprite, metaclass=ABCMeta):
 class Polarbear(Enemy):
     def __init__(self, pos, player):
         super().__init__('Polarbear', pos, player)
-        self.images = [scale(image, 0.6) for image in self.images]
+        self.images = [scale(image, 0.7) for image in self.images]
 
 class Kids(Enemy):
     def __init__(self, pos, player):
         super().__init__('Kids', pos, player)
      
+class Seal(Enemy):
+    def __init__(self, pos, player):
+        super().__init__('Seal', pos, player)
+        config = eneny_config[self.name]
+        self.dash_period = float(config['dash_period'])
+        self.dash_speed = float(config['dash_speed'] )
+        self.timer = self.dash_period
+
+    def update(self, time_elapsed, dt):
+        self.timer -= dt
+        if self.timer <= 0.2:
+            if self.timer <= 0:
+                self.timer += self.dash_period
+            else:
+                drct = self.player.pos-self.pos
+                drct /= norm(drct)
+                self.pos += self.speed*drct*self.dash_speed*dt
+        return super().update(time_elapsed, dt)
 class Snowman_ball(Enemy):
     #images = [img.subsurface(img.get_bounding_rect()) for img in images] #if images have transparent skirts
     
@@ -168,17 +186,19 @@ class Rick(Enemy):
         self.player.movable_dir = ['left','right', 'up', 'down']
         return super().death()
 
+
 class Spawner():
     def __init__(self):
         config = eneny_config['spawner']
         self.base_spawn_period = float(config['base_spawn_period'])
+        self.spawn_range = json.loads(config['spawn_range'])
         self.timer = 0
         self.boss_lookup = [(int(i[0]),str_to_class(i[1])) for i in eneny_config.items('boss_lookup')]
         self.next_boss_index = 0
         self.spawn_lookup = [(int(i[0]),str_to_class(i[1])) for i in eneny_config.items('spawn_lookup')] #set types
         
     def spawn_period(self, player):
-        return self.base_spawn_period
+        return self.base_spawn_period*player.ratio['enemy_period']*uniform(0.5,1.5)
     
     def spawn_boss(self, player):
         spawn_pos = array((random()*width, random()*height))
@@ -201,9 +221,8 @@ class Spawner():
         spawn_type = self.spawn_lookup[bisect_right(self.spawn_lookup, (time_elapsed,))-1][1]
         enemies = []
         
-        spawn_center_pos = array((random()*width, random()*height))
-        while norm(spawn_center_pos-player.pos) < 700 : #do while
-            spawn_center_pos = array((random()*width, random()*height), dtype=float)    
+        spawn_dist, spawn_angle = uniform(*self.spawn_range), uniform(0, 2*pi)
+        spawn_center_pos = player.pos + array((spawn_dist*cos(spawn_angle),spawn_dist*sin(spawn_angle)))
             
         for i in range(amount):
             spawn_pos = spawn_center_pos + array((random(), random()), dtype=float)*200

@@ -153,6 +153,7 @@ class Deer_antler(Weapon):
 
     def update(self, dt):
         if not self.bullet.sprite or self.level != self.bullet.sprite.level :
+            if self.bullet.sprite : self.bullet.sprite.kill()
             self.bullet.add(Deer_antler_bullet(self.image, self.player, self.atk[self.level], self.level))
             return self.bullet
         return []
@@ -198,6 +199,7 @@ class Igloo(Weapon):
 
     def update(self, dt):
         if not self.bullet.sprite or self.level != self.bullet.sprite.level :
+            if self.bullet.sprite : self.bullet.sprite.kill()
             self.bullet.add(Igloo_shelter(self.image, self.player, self.atk, self.max_hp[self.level], self.shoot_period[self.level], self.level))
             return self.bullet
         return []
@@ -326,7 +328,7 @@ class Sled_dog_bullet(pygame.sprite.Sprite):
         self.atk = atk
         self.atk_period = atk_period
         self.atk_timer = 0
-        self.target_enemy = pygame.sprite.Group()
+        self.target_enemy = pygame.sprite.GroupSingle()
 
     def update(self, dt):
         if norm(self.pos - self.player.pos) > self.max_distance:
@@ -335,8 +337,8 @@ class Sled_dog_bullet(pygame.sprite.Sprite):
             nearest_enemy = self.nearest_enemy(self.player.enemies)
             if not nearest_enemy : return
             self.target_enemy.add(nearest_enemy)
-        if norm(self.pos - self.target_enemy.sprites()[0].pos) > 10 : 
-            vec = self.target_enemy.sprites()[0].pos - self.pos
+        if norm(self.pos - self.target_enemy.sprite.pos) > 10 : 
+            vec = self.target_enemy.sprite.pos - self.pos
             vec *= self.speed/norm(vec)
             self.pos += vec*dt
 
@@ -373,10 +375,10 @@ class Sled_dog(Weapon):
         if self.bullets.sprite:
             if self.bullets.sprite.atk == self.atk[self.level]:
                 return []
-        sled_dog_bullet = Sled_dog_bullet(self.image, self.player, 
-            self.speed[self.level], self.atk[self.level], self.atk_period, self.max_distance)
-        self.bullets.add(sled_dog_bullet)
-        return [sled_dog_bullet]
+            self.bullets.sprite.kill()
+        self.bullets.add(Sled_dog_bullet(self.image, self.player, 
+            self.speed[self.level], self.atk[self.level], self.atk_period, self.max_distance))
+        return self.bullets
 
 # 聖誕老人的鬍子
 # 鬍子定軌跡的在玩家上下方移動

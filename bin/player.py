@@ -25,6 +25,8 @@ class Player(pygame.sprite.Sprite):
     max_weapons = int(player_config['common']['max_weapons'])
     max_buffs = int(player_config['common']['max_buffs'])
     scroll = int(player_config['common']['scroll'])
+    xp_a = float(player_config['common']['xp_a'])
+    xp_b = float(player_config['common']['xp_b'])
 
     def __init__(self, name, pos, backend, weapon_list, enemies):
         super().__init__()
@@ -126,10 +128,9 @@ class Player(pygame.sprite.Sprite):
 
         return
 
-
-    @staticmethod
-    def xp_to_next_level(level):
-        return int(2*(level+1)**0.1)
+    @classmethod
+    def xp_to_next_level(cls, level):
+        return int(cls.xp_a*(level+1)**cls.xp_b)
 
     def calc_stats(self):
         for key in type_buff.keys():
