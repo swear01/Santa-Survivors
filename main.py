@@ -167,6 +167,7 @@ def gaming(selected_character):
             pause.draw()
         
         if backend.game_over:
+            pygame.mixer.music.stop()
             dt = 0
             ds = clock.get_time()
             r,g,b = r-ds*0.1,g-ds*0.1,b-ds*0.1
@@ -186,8 +187,13 @@ def gaming(selected_character):
 
 clock.tick()#init call
 while True:
+    if not pygame.mixer.music.get_busy():
+        pygame.mixer.music.play(-1)#表示音樂撥放幾次
+        pygame.mixer.music.set_volume(0.4)
     if backend.main_page:
         next_stage,backend.main_page = main_page(screen,manager,clock)
+    elif backend.tutorial:
+        next_stage,backend.tutorial = tutorial(screen,manager,clock)
     elif backend.select_character:
         next_stage, backend.selected_character, backend.select_character = select_role(screen,manager,clock)
     elif backend.start_game:
@@ -197,6 +203,8 @@ while True:
 
     if next_stage == 'main_page':
         backend.main_page = True
+    elif next_stage == 'tutorial':
+        backend.tutorial = True
     elif next_stage == 'select_character':
         backend.select_character = True
     elif next_stage == 'start':
