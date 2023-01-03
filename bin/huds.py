@@ -65,12 +65,13 @@ class Buff_icon():
             self.level = player.buffs[number].level
             self.level_text = pygame_gui.elements.UILabel(relative_rect=pygame.Rect(self.x-5,self.y+27,40,30),
                 text = f'lv.{self.level+1}', manager=manager,object_id=ObjectID('#level_text'))
+
     def show(self,screen):
         screen.blit(self.image,(self.x,self.y))
     
     def update(self):
         if self.level_text.text[3:] != 'MAX':
-            if int(self.level_text.text[3:])-1 < self.player.buffs[self.number].level:
+            if int(self.level_text.text[3:]) < self.player.buffs[self.number].level+1:
                 self.level_text.set_text(f'lv.{int(self.player.buffs[self.number].level) + 1}')
             if int(self.level_text.text[3:]) == self.player.buffs[self.number].max_level+1:
                 self.level_text.set_text(f'lv.MAX')

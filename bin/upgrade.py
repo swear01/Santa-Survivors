@@ -29,7 +29,8 @@ def upgrade(all_weapons,all_buffs,selected_weapons,selected_buffs):
             if buff not in  selected_buffs_names:
                 non_selecteds += [buff]
         for selected_buff in selected_buffs:
-            selecteds += [selected_buff.name]
+            if selected_buff.level < selected_buff.max_level:
+                selecteds += [selected_buff.name]
     else:
         for selected_buff in selected_buffs:
             if selected_buff.level < selected_buff.max_level:
@@ -51,11 +52,7 @@ def upgrade(all_weapons,all_buffs,selected_weapons,selected_buffs):
             times+=1
             if times>20:
                 break
-        while len(result) < 4:
-            result += [weights[0]]
-            if i+3<len(weights):
-                i+=3
-        print(result)
-        return result
+    if result == []:
+        return 'error'
     else:
-        return 0
+        return result

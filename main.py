@@ -150,11 +150,30 @@ def gaming(selected_character):
         manager.draw_ui(screen)
 
         if backend.upgrade:
-            dt = 0
-            upgrade = Upgrade(screen,manager,player,backend)
-            upgrade.draw()
-            backend.upgrade = False
-            backend.upgrade_menu = True
+            if len(player.weapons) == 4 and len(player.buffs) == 4:
+                not_max_level = True
+                for weapon in player.weapons:
+                    if weapon.level != weapon.max_level:
+                        not_max_level = False
+                        break
+                for buff in player.buffs:
+                    if buff.level != buff.max_level:
+                        not_max_level = False
+                        break
+                if not_max_level:
+                    backend.upgrade = False
+                else:
+                    dt = 0
+                    upgrade = Upgrade(screen,manager,player,backend)
+                    upgrade.draw()
+                    backend.upgrade = False
+                    backend.upgrade_menu = True
+            else:
+                dt = 0
+                upgrade = Upgrade(screen,manager,player,backend)
+                upgrade.draw()
+                backend.upgrade = False
+                backend.upgrade_menu = True
 
         if backend.upgrade_menu:
             dt = 0

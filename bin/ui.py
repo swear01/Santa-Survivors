@@ -524,10 +524,11 @@ def shop(screen,manager,clock,money):
                 if event.key == K_RETURN:
                     for option in options[:8]:
                         if options[selected] == option:
-                            if option.bought == False and money>=10:
-                                money-=10
-                                option.bought = True
-                            else:
+                            if option.bought == False:
+                                if money >= 10:
+                                    money-=10
+                                    option.bought = True
+                            elif option.bought:
                                 money+=10
                                 option.bought = False
                         option.draw()
@@ -623,7 +624,7 @@ def game_over(screen,manager,clock,enemy_killed,golds):
             )
     gold_counter = pygame_gui.elements.UILabel(
             relative_rect=pygame.Rect(100,500,200,50),
-             text = f'golds:{golds}', manager=manager,
+             text = f'golds:{int(golds)}', manager=manager,
             object_id=ObjectID('#guide_text')
             )
     while running:
@@ -705,15 +706,26 @@ class Upgrade():
         self.selected = 0
         self.player = player
         result = upgrade(weapon_list,available_buffs,player.weapons,player.buffs)
-        print(result)
         self.backend = backend
         self.maxlevel = False
-        if result != 0:
+        if len(result) == 4:
             self.upgrade_option0 = Upgrade_option(screen, manager, result[0], 0)
             self.upgrade_option1 = Upgrade_option(screen, manager, result[1], 1)
             self.upgrade_option2 = Upgrade_option(screen, manager, result[2], 2)
             self.upgrade_option3 = Upgrade_option(screen, manager, result[3], 3)
             self.options = [self.upgrade_option0,self.upgrade_option1,self.upgrade_option2,self.upgrade_option3]
+        elif len(result) == 3:
+            self.upgrade_option0 = Upgrade_option(screen, manager, result[0], 0)
+            self.upgrade_option1 = Upgrade_option(screen, manager, result[1], 1)
+            self.upgrade_option2 = Upgrade_option(screen, manager, result[2], 2)
+            self.options = [self.upgrade_option0,self.upgrade_option1,self.upgrade_option2]
+        elif len(result) == 2:
+            self.upgrade_option0 = Upgrade_option(screen, manager, result[0], 0)
+            self.upgrade_option1 = Upgrade_option(screen, manager, result[1], 1)
+            self.options = [self.upgrade_option0,self.upgrade_option1]
+        elif len(result) == 1:
+            self.upgrade_option0 = Upgrade_option(screen, manager, result[0], 0)
+            self.options = [self.upgrade_option0]
         else:
             self.maxlevel = True
 
