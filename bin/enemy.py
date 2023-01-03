@@ -189,6 +189,9 @@ class Tree(Enemy):
         self.shoot_timer = self.shoot_period/2
                 
     def update(self, time_elapsed, dt):
+        if out_of_screen(self.pos):
+            self.pos = (array(self.rect.center)+self.player.pos)/2
+            self.rect.center = self.pos
         self.image = self.images[int(time_elapsed) % len(self.images)]
         self.shoot_timer -= dt
         if self.shoot_timer > 0 : return []
