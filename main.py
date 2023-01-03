@@ -18,6 +18,7 @@ from bin.player import Player
 from bin.ui import *
 from bin.weapon import weapon_list
 from configparser import ConfigParser, ExtendedInterpolation
+from bin.store_buff import *
 
 bgm_and_sounds_config = ConfigParser(interpolation=ExtendedInterpolation())
 bgm_and_sounds_config.read('./data/config/bgm_and_sounds.ini')
