@@ -133,6 +133,7 @@ def gaming(selected_character):
 
             for enemy in enemies_atked:
                 if not pygame.sprite.collide_mask(player, enemy) : continue
+                if enemy.atk == 0 : continue
                 player.hp -= enemy.atk
                 if not die_music_played:
                     player_hurt.play()

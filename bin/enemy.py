@@ -243,7 +243,36 @@ class Snowman1(Snowman):
         
 class Snowman2(Snowman):
     def __init__(self, pos, player):
-        super().__init__('Snowman2', pos, player)     
+        super().__init__('Snowman2', pos, player) 
+        
+class Gingerbreadman(Enemy):
+    def __init__(self, name, pos, player):
+        super().__init__(name, pos, player)  
+        config = eneny_config[self.name] 
+        self.boom_time = float(config['boom_time'])
+        self.timer = self.boom_time
+        self.range = float(config['range'])
+        self.real_atk = float(config['real_atk'])
+
+    def update(self, time_elapsed, dt):
+        if self.timer > 0 :
+            self.timer -= dt
+            self.rect.center = self.player.pos + array((0,1))*self.range*self.timer/self.boom_time
+        else:
+            self.atk = self.real_atk
+            self.rect.center = self.player.pos.copy()
+        #animations
+        self.image = self.images[int(time_elapsed) % len(self.images)]
+        return [] #for compability
+
+class Gingerbreadman1(Gingerbreadman):
+    def __init__(self, pos, player):
+        super().__init__('Gingerbreadman1', pos, player)
+        
+class Gingerbreadman2(Gingerbreadman):
+    def __init__(self, pos, player):
+        super().__init__('Gingerbreadman2', pos, player) 
+         
 class Rick(Enemy):
     def __init__(self, name, pos, player):
         super().__init__(name, pos, player)
@@ -284,21 +313,13 @@ class Spawner():
         self.base_spawn_period = float(config['base_spawn_period'])
         self.spawn_range = json.loads(config['spawn_range'])
         self.timer = 0
-        self.boss_lookup = [(int(i[0]),str_to_class(i[1])) for i in eneny_config.items('boss_lookup')]
+        self.boss_lookup = [(i[0],i[2],str_to_class(i[1])) for i in json.loads(config['boss_lookup'])]
         self.next_boss_index = 0
         self.spawn_lookup = [(i[0],i[2],str_to_class(i[1])) for i in json.loads(config['spawn_lookup'])] #set types
         self.player = player
         
     def spawn_period(self):
         return self.base_spawn_period*self.player.ratio['enemy_period']*uniform(0.5,1.5)
-    
-    def spawn_boss(self):
-        spawn_pos = array((random()*width, random()*height))
-        while norm(spawn_pos-self.player.pos) < 700 : #do while
-            spawn_pos = array((random()*width, random()*height), dtype=float)  
-        spawn_type = self.boss_lookup[self.next_boss_index][1] 
-        self.next_boss_index += 1   
-        return [spawn_type(spawn_pos, self.player)]
                  
 
     def spawn(self, time_elapsed, dt):
@@ -306,10 +327,12 @@ class Spawner():
         self.timer -= dt
         #spawn boss
         if self.boss_lookup[self.next_boss_index][0] <= time_elapsed :
-            return self.spawn_boss()
-        if self.timer > 0 : return []
-        self.timer = self.spawn_period()
-        this_spawn = self.spawn_lookup[bisect_right(self.spawn_lookup, (time_elapsed,))-1]
+            this_spawn = self.boss_lookup[self.next_boss_index]
+            self.next_boss_index += 1 
+        elif self.timer > 0 : return []
+        else:
+            self.timer = self.spawn_period()
+            this_spawn = self.spawn_lookup[bisect_right(self.spawn_lookup, (time_elapsed,))-1]
         amount, spawn_type = this_spawn[1], this_spawn[2]
         enemies = []
         
