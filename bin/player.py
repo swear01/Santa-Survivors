@@ -12,9 +12,11 @@ from .store_buff import read_store_buff
 
 
 player_config = ConfigParser(interpolation=ExtendedInterpolation())
+player_config.optionxform = str
 player_config.read('./data/config/player.ini')
 
 input_binds = ConfigParser(interpolation=ExtendedInterpolation())
+input_binds.optionxform = str
 input_binds.read('./data/config/input_binding.ini')
 key_binds = {} #final use objects
 key_map = vars()

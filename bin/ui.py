@@ -8,13 +8,14 @@ from numpy import array
 from numpy.linalg import norm
 from pygame.locals import *  # CONSTS
 from pygame_gui.core import ObjectID
-from .store_buff import read_level, save_level
+from .store_buff import read_level, save_level, read_stats, save_stats
 from .upgrade import *
 from .config import *
 from configparser import ConfigParser, ExtendedInterpolation
 
 
 ui_config = ConfigParser(interpolation=ExtendedInterpolation())
+ui_config.optionxform = str
 ui_config.read('./data/config/ui.ini')
 
 class Main_page_background():
@@ -469,30 +470,28 @@ def tutorial(screen,manager,clock):
         manager.draw_ui(screen)
         pygame.display.flip()
 
-def shop(screen,manager,clock,money):
+def shop(screen,manager,clock):
+    stats = read_stats()
+    levels = read_level()
+    money = int(stats['gold'])
     screen.fill("#90EE90")
     running = True
     dt = 0
     selected = 0
-    shop_option0 = Shop_option(screen,manager,0)
-    shop_option1 = Shop_option(screen,manager,1)
-    shop_option2 = Shop_option(screen,manager,2)
-    shop_option3 = Shop_option(screen,manager,3)
-    shop_option4 = Shop_option(screen,manager,4)
-    shop_option5 = Shop_option(screen,manager,5)
-    shop_option6 = Shop_option(screen,manager,6)
-    shop_option7 = Shop_option(screen,manager,7)
+    options = [Shop_option(screen,manager,i) for i in range(8)]
+    for i, (key, item) in enumerate(levels.items()):
+        #print(key, item)
+        if item == '1' :
+            options[i].bought = True
     money_icon = pygame.image.load(ui_config['money']['img_dir']).convert_alpha()
     money_icon = pygame.transform.scale(money_icon,(40,40))
     money_text = pygame_gui.elements.UILabel(relative_rect=pygame.Rect(750,200,200,50),
         text = f"{money}", manager=manager, object_id=ObjectID('#guide_text'))
-    quit = Quit(screen)
-    options = [shop_option0,shop_option1,shop_option2,shop_option3,shop_option4,shop_option5,shop_option6,shop_option7,quit]
-    buff_list = ['fortune','muscle','nike','warming','hell','wd_40','wise','strong']
     result = {}
     # create title and options
     main_page_background = Main_page_background(screen)
-    options += [quit]
+    quit = Quit(screen)
+    options += [quit]*2
 
     while running:
         main_page_background.draw()
@@ -536,9 +535,11 @@ def shop(screen,manager,clock,money):
                         money_text.kill()
                         for i in range(8):
                             print(options[i].name,options[i].bought)
-                            result[options[i].name] = 1 if options[i].bought else 0
-                        print(result)
+                            result[options[i].name] = str(1 if options[i].bought else 0)
+                        #print(result)
                         save_level(result)
+                        stats['gold'] = str(money)
+                        save_stats(stats)
                         return 'main_page',False
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
@@ -607,11 +608,17 @@ def select_role(screen,manager,clock):
         pygame.display.flip()
 
 def game_over(screen,manager,clock,enemy_killed,golds):
+
     screen.fill("#000000")
     running = True
     dt = 0
     selected = 0
 
+    player_data = read_stats()
+    player_data['kills'] = str(int(player_data['kills'])+int(enemy_killed))
+    player_data['gold'] = str(int(player_data['gold'])+int(golds))
+    save_stats(player_data)
+    
     # create title and options
     game_over_text = Game_over_text(screen)
     again = Again(screen)

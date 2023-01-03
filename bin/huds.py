@@ -6,6 +6,7 @@ from pygame.locals import *  # CONSTS
 from pygame_gui.core import ObjectID
 
 config = ConfigParser(interpolation=ExtendedInterpolation())
+config.optionxform = str
 config.read('./data/config/huds.ini')
 
 class Weapon_icon():

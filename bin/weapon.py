@@ -14,6 +14,7 @@ from json import loads
 from random import random
 
 weapon_config = ConfigParser(interpolation=ExtendedInterpolation())
+weapon_config.optionxform = str
 weapon_config.read('./data/config/weapon.ini')
 
 

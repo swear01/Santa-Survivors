@@ -13,8 +13,9 @@ from pygame.locals import *  # CONSTS
 
 from .config import height, width
 
-eneny_config = ConfigParser(interpolation=ExtendedInterpolation())
-eneny_config.read('./data/config/enemy.ini')
+enemy_config = ConfigParser(interpolation=ExtendedInterpolation())
+enemy_config.optionxform = str
+enemy_config.read('./data/config/enemy.ini')
 
 def str_to_class(classname):
     return getattr(sys.modules[__name__], classname)
@@ -29,7 +30,7 @@ class Drop(pygame.sprite.Sprite, metaclass=ABCMeta):
     def __init__(self, name, pos, player):
         super().__init__()
         self.name = name
-        config = eneny_config[self.name]
+        config = enemy_config[self.name]
         self.image = pygame.image.load(config['img_dir']).convert_alpha()
         self.rect = self.image.get_rect()
         self.pos = pos
@@ -66,7 +67,7 @@ class Enemy(pygame.sprite.Sprite, metaclass=ABCMeta):
         super().__init__()
         self.player = player
         self.name = name
-        self.config:dict = eneny_config[self.name]
+        self.config:dict = enemy_config[self.name]
         self.atk = float(self.config['atk'])
         self.max_hp = float(self.config['max_hp'])
         self.speed = float(self.config['speed'])
@@ -139,7 +140,7 @@ class Kid4(Enemy):
 class Seal(Enemy):
     def __init__(self, pos, player):
         super().__init__('Seal', pos, player)
-        config = eneny_config[self.name]
+        config = enemy_config[self.name]
         self.dash_period = float(config['dash_period'])
         self.dash_speed = float(config['dash_speed'] )
         self.timer = self.dash_period
@@ -248,7 +249,7 @@ class Snowman2(Snowman):
 class Gingerbreadman(Enemy):
     def __init__(self, name, pos, player):
         super().__init__(name, pos, player)  
-        config = eneny_config[self.name] 
+        config = enemy_config[self.name] 
         self.boom_time = float(config['boom_time'])
         self.timer = self.boom_time
         self.range = float(config['range'])
@@ -274,11 +275,11 @@ class Gingerbreadman2(Gingerbreadman):
         super().__init__('Gingerbreadman2', pos, player) 
          
 class Rick(Enemy):
-    music = pygame.mixer.Sound(eneny_config['Rick1']['self_bgm'])
+    music = pygame.mixer.Sound(enemy_config['Rick1']['self_bgm'])
     def __init__(self, name, pos, player):
         super().__init__(name, pos, player)
         self.player.movable_dir = ['left','right']
-        config = eneny_config[self.name]
+        config = enemy_config[self.name]
         self.music.play()
 
 
@@ -309,7 +310,7 @@ class Rick4(Rick):
 
 class Spawner():
     def __init__(self, player):
-        config = eneny_config['spawner']
+        config = enemy_config['spawner']
         self.base_spawn_period = float(config['base_spawn_period'])
         self.spawn_range = json.loads(config['spawn_range'])
         self.timer = 0

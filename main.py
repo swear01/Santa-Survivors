@@ -20,6 +20,7 @@ from bin.weapon import weapon_list
 from configparser import ConfigParser, ExtendedInterpolation
 
 bgm_and_sounds_config = ConfigParser(interpolation=ExtendedInterpolation())
+bgm_and_sounds_config.optionxform = str
 bgm_and_sounds_config.read('./data/config/bgm_and_sounds.ini')
 
 clock = pygame.time.Clock()
@@ -215,12 +216,12 @@ while True:
     elif backend.tutorial:
         next_stage,backend.tutorial = tutorial(screen,manager,clock)
     elif backend.shop:
-        next_stage,backend.shop = shop(screen,manager,clock,40)
+        next_stage,backend.shop = shop(screen,manager,clock)
         
     elif backend.select_character:
         next_stage, backend.selected_character, backend.select_character = select_role(screen,manager,clock)
     elif backend.start_game:
-        next_stage, enemy_killed, golds,backend.start_game = gaming(backend.selected_character)
+        next_stage, enemy_killed, golds, backend.start_game = gaming(backend.selected_character)
     elif backend.game_over:
         next_stage,backend.game_over = game_over(screen,manager,clock, enemy_killed, golds)
 
