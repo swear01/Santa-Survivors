@@ -167,11 +167,12 @@ def gaming(selected_character):
             pygame.mixer.music.stop()
             dt = 0
             ds = clock.get_time()
-            r,g,b = r-ds*0.1,g-ds*0.1,b-ds*0.1
+            r,g,b = r-ds*0.05,g-ds*0.05,b-ds*0.05
             if not die_music_played:
                 player_die.play()
             die_music_played = True
             if r <= 0:
+                player_die.stop()
                 screen.fill((0,0,0))
                 huds.kill()
                 backend.game_over = False
@@ -194,7 +195,8 @@ while True:
     elif backend.tutorial:
         next_stage,backend.tutorial = tutorial(screen,manager,clock)
     elif backend.shop:
-        next_stage,buff_list,backend.shop = shop(screen,manager,clock,100)
+        next_stage,backend.shop = shop(screen,manager,clock,100)
+        
     elif backend.select_character:
         next_stage, backend.selected_character, backend.select_character = select_role(screen,manager,clock)
     elif backend.start_game:

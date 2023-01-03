@@ -8,6 +8,7 @@ from numpy import array
 from numpy.linalg import norm
 from pygame.locals import *  # CONSTS
 from pygame_gui.core import ObjectID
+from .store_buff import read_level, save_level
 from .upgrade import *
 from .config import *
 from configparser import ConfigParser, ExtendedInterpolation
@@ -488,7 +489,7 @@ def shop(screen,manager,clock,money):
     quit = Quit(screen)
     options = [shop_option0,shop_option1,shop_option2,shop_option3,shop_option4,shop_option5,shop_option6,shop_option7,quit]
     buff_list = ['fortune','muscle','nike','warming','hell','wd_40','wise','strong']
-    result = []
+    result = {}
     # create title and options
     main_page_background = Main_page_background(screen)
     options += [quit]
@@ -534,10 +535,10 @@ def shop(screen,manager,clock,money):
                         money_text.kill()
                         for i in range(8):
                             print(options[i].name,options[i].bought)
-                            if options[i].bought:
-                                result += [options[i].name]
+                            result[options[i].name] = 1 if options[i].bought else 0
                         print(result)
-                        return 'main_page',result,False
+                        save_level(result)
+                        return 'main_page',False
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
         # - update -

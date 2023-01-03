@@ -245,6 +245,10 @@ class Rick(Enemy):
     def __init__(self, name, pos, player):
         super().__init__(name, pos, player)
         self.player.movable_dir = ['left','right']
+        config = eneny_config[self.name]
+        self.music = pygame.mixer.Sound(config['self_bgm'])
+        self.music.play()
+
 
     def update(self, time_elapsed, dt):
         self.pos[1] = self.player.pos[1]
@@ -252,6 +256,7 @@ class Rick(Enemy):
 
     def death(self) -> Drop:
         self.player.movable_dir = ['left','right', 'up', 'down']
+        self.music.stop()
         return super().death()
 
 class Rick1(Rick):

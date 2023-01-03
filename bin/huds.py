@@ -63,6 +63,13 @@ class Buff_icon():
                 text = f'lv.{self.level+1}', manager=manager,object_id=ObjectID('#level_text'))
     def show(self,screen):
         screen.blit(self.image,(self.x,self.y))
+    
+    def update(self):
+        if self.level_text.text[3:] != 'MAX':
+            if int(self.level_text.text[3:])-1 < self.player.buffs[self.number].level:
+                self.level_text.set_text(f'lv.{int(self.player.buffs[self.number].level) + 1}')
+            if int(self.level_text.text[3:]) == self.player.buffs[self.number].max_level+1:
+                self.level_text.set_text(f'lv.MAX')
 
     def kill(self):
         self.level_text.kill()
@@ -114,7 +121,7 @@ class Huds:
     def update(self, time_elapsed,kill_counts,gold_counts):
         self.timer.set_text(f'{(int(time_elapsed // 60)):02d} : {(int(time_elapsed) % 60):02d}')
         self.kill_counter.set_text(f'kills:{kill_counts}')
-        self.gold_counter.set_text(f'golds:{gold_counts}')
+        self.gold_counter.set_text(f'golds:{int(gold_counts)}')
         if self.weapons < len(self.player.weapons):
             self.weapon_icons[self.weapons] = Weapon_icon(self.screen,self.manager,self.player,self.player.weapons[self.weapons],self.weapons)
             self.weapons += 1
@@ -123,7 +130,8 @@ class Huds:
             self.buffs += 1
         for i in range(len(self.player.weapons)):
             self.weapon_icons[i].update()
-
+        for i in range(len(self.player.buffs)):
+            self.buff_icons[i].update()
 
     def kill(self):
         self.timer.kill()
