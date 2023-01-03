@@ -274,11 +274,11 @@ class Gingerbreadman2(Gingerbreadman):
         super().__init__('Gingerbreadman2', pos, player) 
          
 class Rick(Enemy):
+    music = pygame.mixer.Sound(eneny_config['Rick1']['self_bgm'])
     def __init__(self, name, pos, player):
         super().__init__(name, pos, player)
         self.player.movable_dir = ['left','right']
         config = eneny_config[self.name]
-        self.music = pygame.mixer.Sound(config['self_bgm'])
         self.music.play()
 
 
