@@ -78,5 +78,23 @@
         {
             "text_shadow_size": "0"
         }
+    },
+    "#level_text":
+    {
+        "colours":
+        {   "normal_text": "#FFFF00"
+        },
+        "font":
+        {
+            "name": "Microsoft JhengHei",
+            "size": "12",
+            "bold": "0",
+            "italic": "0",
+            "regular_path": "./data/fonts/Microsoft JhengHei.ttf"
+        },
+        "misc":
+        {
+            "text_shadow_size": "0"
+        }
     }
 }

@@ -33,7 +33,7 @@ def upgrade(all_weapons,all_buffs,selected_weapons,selected_buffs):
     else:
         for selected_buff in selected_buffs:
             if selected_buff.level < selected_buff.max_level:
-                selecteds += [selected_buff]
+                selecteds += [selected_buff.name]
     weights = []
     result = []
     for selected in selecteds:

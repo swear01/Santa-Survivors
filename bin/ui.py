@@ -76,30 +76,10 @@ class Start():
         else:
             self.screen.blit(self.img[0],(self.x,self.y))
 
-# class Shop():
-#     def __init__(self,screen):
-#         self.screen = screen
-#         config:dict = ui_config['shop']
-#         self.x = int(config['x'])
-#         self.y = int(config['y'])
-#         self.width = int(config['width'])
-#         self.height = int(config['height'])
-#         self.img = [pygame.image.load(path).convert_alpha() for path in config['img_dirs'].split('\n')]
-#         self.selected = False
-
-#         for i in range(len(self.img)):
-#             self.img[i] = pygame.transform.scale(self.img[i],(self.width,self.height))
-
-#     def draw(self):
-#         if self.selected:
-#             self.screen.blit(self.img[1],(self.x,self.y))
-#         else:
-#             self.screen.blit(self.img[0],(self.x,self.y))
-
-class Quit():
+class Shop():
     def __init__(self,screen):
         self.screen = screen
-        config:dict = ui_config['quit']
+        config:dict = ui_config['shop']
         self.x = int(config['x'])
         self.y = int(config['y'])
         self.width = int(config['width'])
@@ -115,7 +95,33 @@ class Quit():
             self.screen.blit(self.img[1],(self.x,self.y))
         else:
             self.screen.blit(self.img[0],(self.x,self.y))
+class Shop_option():
+    def __init__(self,screen,manager,number):
+        self.screen = screen
+        self.number = number
+        self.bought = False
+        config:dict = ui_config['shop_option']
+        self.name = [name for name in config['name'].split('\n')][number]
+        self.x = [int(x) for x in config['x'].split('\n')]
+        self.y = [int(y) for y in config['y'].split('\n')]
+        self.width = int(config['width'])
+        self.height = int(config['height'])
+        self.selected = False
+        self.img = [pygame.image.load(path).convert_alpha() for path in config['img_dirs'].split('\n')]
+        for i in range(len(self.img)):
+            self.img[i] = pygame.transform.scale(self.img[i],(self.width,self.height))
 
+    def draw(self):
+        if self.selected:
+            self.screen.blit(self.img[9],(self.x[self.number],self.y[self.number]))
+            self.screen.blit(self.img[self.number],(self.x[self.number],self.y[self.number]))
+            self.screen.blit(self.img[11],(self.x[self.number],self.y[self.number]))
+        else:
+            self.screen.blit(self.img[8],(self.x[self.number],self.y[self.number]))        
+            self.screen.blit(self.img[self.number],(self.x[self.number],self.y[self.number]))
+            self.screen.blit(self.img[10],(self.x[self.number],self.y[self.number]))
+        if self.bought:
+            self.screen.blit(self.img[12],(self.x[self.number]+50,self.y[self.number]-50))
 class Tutorial():
     def __init__(self,screen):
         self.screen = screen
@@ -154,7 +160,25 @@ class Show_tutorial():
     def draw(self,stage):
             self.screen.blit(self.img[stage],(self.x,self.y))
             self.text.set_text(self.guide_texts[stage])
+class Quit():
+    def __init__(self,screen):
+        self.screen = screen
+        config:dict = ui_config['quit']
+        self.x = int(config['x'])
+        self.y = int(config['y'])
+        self.width = int(config['width'])
+        self.height = int(config['height'])
+        self.img = [pygame.image.load(path).convert_alpha() for path in config['img_dirs'].split('\n')]
+        self.selected = False
 
+        for i in range(len(self.img)):
+            self.img[i] = pygame.transform.scale(self.img[i],(self.width,self.height))
+
+    def draw(self):
+        if self.selected:
+            self.screen.blit(self.img[1],(self.x,self.y))
+        else:
+            self.screen.blit(self.img[0],(self.x,self.y))
 class Resume():
     def __init__(self,screen):
         self.screen = screen
@@ -266,11 +290,19 @@ def init_weapon_icons():
 def init_weapon_icon_show(screen,init_weapon_icons,name):
     screen.blit(init_weapon_icons[name],(700,400))
     
+def draw_text(surface,text,x,y):
+    font = pygame.font.Font(ui_config['font']['dir'],32)
+    text_surface = font.render(text,True,(255,255,255))#(字,反鋸齒,顏色)
+    text_rect = text_surface.get_rect()
+    text_rect.left = x
+    text_rect.top = y
+    surface.blit(text_surface,text_rect)
 
 class Upgrade_option():
     def __init__(self,screen,manager,option_name,number):
-
         self.screen = screen
+        self.manager = manager
+        self.number = number
         config:dict = ui_config['upgrade_option']
         self.x = int(config['x'])
         self.y = [int(y) for y in config['y'].split('\n')]
@@ -279,16 +311,18 @@ class Upgrade_option():
         self.height = [int(height) for height in config['height'].split('\n')]
         self.selected = False
         self.img = [pygame.image.load(path).convert_alpha() for path in config['img_dirs'].split('\n')]
-        print(option_name,type(option_name))
         if option_name in weapon_list:
-            self.option_image = pygame.image.load(weapon_config[option_name]['img_dir']).convert_alpha()
-            self.option_image = pygame.transform.scale(self.option_image,(30,30))
-            self.option_text = option_name
-            self.option_name = option_name
+            if option_name == "LED":
+                self.option_image = pygame.image.load(ui_config['led_icon']['img_dir']).convert_alpha()
+                self.option_image = pygame.transform.scale(self.option_image,(100,100))
+                self.option_name = option_name
+            else:
+                self.option_image = pygame.image.load(weapon_config[option_name]['img_dir']).convert_alpha()
+                self.option_image = pygame.transform.scale(self.option_image,(100,100))
+                self.option_name = option_name
         else:
             self.option_image = pygame.image.load(buff_config[option_name]['img_dir']).convert_alpha()
-            self.option_image = pygame.transform.scale(self.option_image,(30,30))
-            self.option_text = option_name
+            self.option_image = pygame.transform.scale(self.option_image,(100,100))
             self.option_name = option_name
 
         for i in range(len(self.img)):
@@ -298,15 +332,17 @@ class Upgrade_option():
     def draw(self):
         if self.selected:
             self.screen.blit(self.img[1],(self.x,self.y))
-            self.screen.blit(self.img[3],(self.x,self.y))
-            self.screen.blit(self.option_image,(self.x,self.y))
-            self.screen.blit(self.img[5],(self.x,self.y))
+            self.screen.blit(self.img[3],(self.x+10,self.y+10))
+            self.screen.blit(self.option_image,(self.x+10,self.y+10))
+            draw_text(self.screen,self.option_name,self.x+150,self.y+38)
+            self.screen.blit(self.img[5],(self.x+10,self.y+10))
 
         else:
             self.screen.blit(self.img[0],(self.x,self.y))
-            self.screen.blit(self.img[2],(self.x,self.y))
-            self.screen.blit(self.option_image,(self.x,self.y))
-            self.screen.blit(self.img[4],(self.x,self.y))
+            self.screen.blit(self.img[2],(self.x+10,self.y+10))
+            self.screen.blit(self.option_image,(self.x+10,self.y+10))
+            draw_text(self.screen,self.option_name,self.x+150,self.y+38)
+            self.screen.blit(self.img[4],(self.x+10,self.y+10))
 
 
 class Again():
@@ -355,8 +391,9 @@ def main_page(screen,manager,clock):
     title = Title(screen)
     start = Start(screen)
     tutorial = Tutorial(screen)
+    shop = Shop(screen)
     quit = Quit(screen)
-    options = [start,tutorial,quit]
+    options = [start,tutorial,shop,quit]
 
     while running:
         main_page_background.draw()
@@ -385,11 +422,13 @@ def main_page(screen,manager,clock):
                 if event.key == K_RETURN:
                     if options[selected] == start:
                         return "select_character",False
+                    if options[selected] == tutorial:
+                        return "tutorial",False
+                    if options[selected] == shop:
+                        return "shop",False
                     if options[selected] == quit:
                         pygame.quit()
                         exit()
-                    if options[selected] == tutorial:
-                        return "tutorial",False
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
         # - update -
@@ -421,6 +460,84 @@ def tutorial(screen,manager,clock):
             elif event.type == pygame.KEYDOWN:
                 # next stage
                 stage += 1
+                if event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+        # - update -
+        manager.update(dt)
+        # - draws -
+        manager.draw_ui(screen)
+        pygame.display.flip()
+
+def shop(screen,manager,clock,money):
+    screen.fill("#90EE90")
+    running = True
+    dt = 0
+    selected = 0
+    shop_option0 = Shop_option(screen,manager,0)
+    shop_option1 = Shop_option(screen,manager,1)
+    shop_option2 = Shop_option(screen,manager,2)
+    shop_option3 = Shop_option(screen,manager,3)
+    shop_option4 = Shop_option(screen,manager,4)
+    shop_option5 = Shop_option(screen,manager,5)
+    shop_option6 = Shop_option(screen,manager,6)
+    shop_option7 = Shop_option(screen,manager,7)
+    money_icon = pygame.image.load(ui_config['money']['img_dir']).convert_alpha()
+    money_icon = pygame.transform.scale(money_icon,(40,40))
+    money_text = pygame_gui.elements.UILabel(relative_rect=pygame.Rect(750,200,200,50),
+        text = f"{money}", manager=manager, object_id=ObjectID('#guide_text'))
+    quit = Quit(screen)
+    options = [shop_option0,shop_option1,shop_option2,shop_option3,shop_option4,shop_option5,shop_option6,shop_option7,quit]
+    buff_list = ['fortune','muscle','nike','warming','hell','wd_40','wise','strong']
+    result = []
+    # create title and options
+    main_page_background = Main_page_background(screen)
+    options += [quit]
+
+    while running:
+        main_page_background.draw()
+        screen.blit(money_icon,(760,200))
+        for option in options:
+            if options[selected] == option:
+                option.selected = True
+            else:
+                option.selected = False
+            option.draw()
+        money_text.set_text(f'{money}')
+        # - events -
+        dt = clock.tick(FPS)/1000
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            elif event.type == pygame.KEYDOWN:
+                # select 
+                if event.key == K_UP or event.key == K_w and selected-4>=0:
+                    selected-=4
+                if event.key == K_DOWN or event.key == K_s and selected+4<len(options)-1:
+                    selected+=4
+                if event.key == K_LEFT or event.key == K_a and selected>0:
+                    selected-=1
+                if event.key == K_RIGHT or event.key == K_d and selected<len(options)-1:
+                    selected+=1
+                # next stage
+                if event.key == K_RETURN:
+                    for option in options[:8]:
+                        if options[selected] == option:
+                            if option.bought == False and money>=10:
+                                money-=10
+                                option.bought = True
+                            else:
+                                money+=10
+                                option.bought = False
+                        option.draw()
+                    if options[selected] == quit:
+                        money_text.kill()
+                        for i in range(8):
+                            print(options[i].name,options[i].bought)
+                            if options[i].bought:
+                                result += [options[i].name]
+                        print(result)
+                        return 'main_page',result,False
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
         # - update -
@@ -583,7 +700,6 @@ class Pause():
 
 
 class Upgrade():
-
     def __init__(self,screen, manager, player, backend):
         self.selected = 0
         self.player = player
@@ -621,8 +737,10 @@ class Upgrade():
                         if  buff.name == self.options[self.selected].option_name:
                             buff.level += 1
                             return 0
+
                     self.player.buffs += [available_buffs[self.options[self.selected].option_name]]
                 self.player.calc_stats() #make buffs work
+
         else:
             self.backend.upgrade_menu = False
            
