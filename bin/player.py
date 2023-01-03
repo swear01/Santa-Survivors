@@ -7,7 +7,8 @@ from pygame.locals import *  # CONSTS
 import json
 
 from .weapon import *
-from .buff import type_buff
+from .buff import buff_types
+from .store_buff import read_store_buff
 
 
 player_config = ConfigParser(interpolation=ExtendedInterpolation())
@@ -45,6 +46,7 @@ class Player(pygame.sprite.Sprite):
         self.movable_dir = ['left', 'right', 'down', 'up']
         self.weapons = [weapon_list[self.config['init_weapon']](self)]
         self.buffs = []
+        self.store_buffs = read_store_buff(player_config['common']['play_data_dir'])
         self.base = {'atk':float(self.config['atk']),
                 'hp':float(self.config['hp']),
                 'speed':float(self.config['speed']),
@@ -134,12 +136,14 @@ class Player(pygame.sprite.Sprite):
         return int(cls.xp_a*(level+1)**cls.xp_b)
 
     def calc_stats(self):
-        for key in type_buff.keys():
+        for key in buff_types:
             self.ratio[key] = 1
         for key, value in self.base.items():
             self.ratio[key] *= value
+        for store_buff in self.store_buffs:
+            self.ratio[store_buff.type] *= (1+store_buff.effect*store_buff.level)          
         for buff in self.buffs:
-            self.ratio[buff.type] *= (1+buff.effect)*buff.level
+            self.ratio[buff.type] *= (1+buff.effect*buff.level)
 
         self.max_hp = self.ratio['hp']
         self.hp_r = self.ratio['hp_r']

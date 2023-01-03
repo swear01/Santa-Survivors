@@ -58,5 +58,4 @@ class Strong(Buff):
 
 available_buffs:dict[str,Buff] = {'Fortune':Fortune, 'Muscle':Muscle, 'Nike':Nike,
                                   'Warming':Warming, 'Hell':Hell, 'WD_40':WD_40, 'Wise':Wise, 'Strong':Strong}
-type_buff :dict[str,Buff] = {'gold':Fortune, 'atk':Muscle, 'speed':Nike,
-                                  'hp_r':Warming, 'enemy_period':Hell, 'shoot_period':WD_40, 'xp':Wise, 'hp':Strong}
+buff_types = ['gold','atk','speed','hp_r','enemy_period','shoot_period','xp','hp']

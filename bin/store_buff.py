@@ -70,7 +70,18 @@ def save_level(store_levels:dict, save_path = './save/player1.ini'):
     
     return buff_config.items('Store_upgrade')
 
+def read_store_buff(save_path = './save/player1.ini') -> list:
+    user_data = ConfigParser(interpolation=ExtendedInterpolation())
+    user_data.optionxform = str
+    user_data.read(save_path)
+    store_buff_data = user_data['Store_upgrade']
+    buffs = []
+    for buff_name in store_buff_data:
+        buff = available_buffs[buff_name]()
+        buff.level = int(store_buff_data[buff_name])
+        buffs.append(buff)
+    return buffs
+
 available_buffs:dict[str,Buff] = {'Fortune':Fortune, 'Muscle':Muscle, 'Nike':Nike,
                                   'Warming':Warming, 'Hell':Hell, 'WD_40':WD_40, 'Wise':Wise, 'Strong':Strong}
-type_buff :dict[str,Buff] = {'gold':Fortune, 'atk':Muscle, 'speed':Nike,
-                                  'hp_r':Warming, 'enemy_period':Hell, 'shoot_period':WD_40, 'xp':Wise, 'hp':Strong}
+buff_types = ['gold','atk','speed','hp_r','enemy_period','shoot_period','xp','hp']
