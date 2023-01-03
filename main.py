@@ -111,13 +111,12 @@ def gaming(selected_character):
             for bullet, hit_enemies in b_e_collide.items():
                 for enemy in hit_enemies: #bullaet may have 0 hp
                     if bullet.hp <= 0 : break
-                    if enemy.hp <= 0 :    
-                        enemy.death()          
+                    if enemy.hp <= 0 :           
                         continue
                     enemy.hp -= bullet.atk*player.ratio['atk']
                     bullet.hp -= 1 
-                    # if type(bullet) == Deer_antler_bullet or type(bullet) == Igloo_shelter :
-                    #     enemy.avoid()
+
+            #drops.add(enemy.death() for enemy in enemies if enemy.hp <= 0)
 
             for enemy1, enemy2s in pygame.sprite.groupcollide(enemies,enemies, False, False, pygame.sprite.collide_circle_ratio(0.44)).items():
                 for enemy2 in enemy2s:

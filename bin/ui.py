@@ -534,7 +534,7 @@ def shop(screen,manager,clock):
                     if options[selected] == quit:
                         money_text.kill()
                         for i in range(8):
-                            print(options[i].name,options[i].bought)
+                            #print(options[i].name,options[i].bought)
                             result[options[i].name] = str(1 if options[i].bought else 0)
                         #print(result)
                         save_level(result)

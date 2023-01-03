@@ -5,6 +5,7 @@ from configparser import ConfigParser, ExtendedInterpolation
 import pygame
 
 buff_config = ConfigParser(interpolation=ExtendedInterpolation())
+buff_config.optionxform = str
 buff_config.read('./data/config/store_buff.ini')
 
 class Buff:
@@ -87,7 +88,7 @@ def save_stats(stats:dict, save_path = './save/player1.ini'):
     return 
 
 def read_store_buff(save_path = './save/player1.ini') -> list:
-    user_data = ConfigParser()
+    user_data = ConfigParser(interpolation=ExtendedInterpolation())
     user_data.optionxform = str
     user_data.read(save_path)
     store_buff_data = user_data['Store_upgrade']
