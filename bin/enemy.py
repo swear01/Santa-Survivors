@@ -260,6 +260,7 @@ class Gingerbreadman(Enemy):
             self.timer -= dt
             self.rect.center = self.player.pos + array((0,1))*self.range*self.timer/self.boom_time
         else:
+            if self.atk != 0 : return self.kill()
             self.atk = self.real_atk
             self.rect.center = self.player.pos.copy()
         #animations
