@@ -19,7 +19,11 @@ class Weapon_icon():
         self.height = int(config['weapon_icon']['height'])
         self.name = 'weapon_icon'
         if weapon != "weapon_icon":
-            self.image = pygame.transform.scale(weapon.image,(self.width,self.height))
+            if weapon.name == 'LED' or weapon.name == 'led' or self.name == 'led':
+                self.led = pygame.image.load(config['led']['img_dir']).convert_alpha()
+                self.image = pygame.transform.scale(self.led,(self.width,self.height))
+            else:
+                self.image = pygame.transform.scale(weapon.image,(self.width,self.height))
         else:
             self.image = pygame.image.load(config['weapon_icon']['img_dir']).convert_alpha()
             self.image = pygame.transform.scale(self.image,(self.width,self.height))
