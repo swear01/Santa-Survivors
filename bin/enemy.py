@@ -121,21 +121,21 @@ class Brownbear(Enemy):
     def __init__(self, pos, player):
         super().__init__('Brownbear', pos, player)
 
-class Kids1(Enemy):
+class Kid1(Enemy):
     def __init__(self, pos, player):
-        super().__init__('Kids1', pos, player)
+        super().__init__('Kid1', pos, player)
         
-class Kids2(Enemy):
+class Kid2(Enemy):
     def __init__(self, pos, player):
-        super().__init__('Kids2', pos, player)
+        super().__init__('Kid2', pos, player)
         
-class Kids3(Enemy):
+class Kid3(Enemy):
     def __init__(self, pos, player):
-        super().__init__('Kids3', pos, player)
+        super().__init__('Kid3', pos, player)
         
-class Kids4(Enemy):
+class Kid4(Enemy):
     def __init__(self, pos, player):
-        super().__init__('Kids4', pos, player) 
+        super().__init__('Kid4', pos, player) 
 class Seal(Enemy):
     def __init__(self, pos, player):
         super().__init__('Seal', pos, player)
@@ -197,8 +197,6 @@ class Tree(Enemy):
     
 class Snowman_ball(Enemy):
     #images = [img.subsurface(img.get_bounding_rect()) for img in images] #if images have transparent skirts
-    
-    
     def __init__(self, pos, player):
         super().__init__('Snowman_ball', pos ,player)
         self.drct = self.player.pos-self.pos 
@@ -224,8 +222,8 @@ class Snowman_ball(Enemy):
 class Snowman(Enemy):
     #images = [img.subsurface(img.get_bounding_rect()) for img in images] #if images have transparent skirts
     
-    def __init__(self, pos, player):
-        super().__init__('Snowman',pos,player)
+    def __init__(self, name, pos, player):
+        super().__init__(name, pos, player)
         self.shoot_period = float(self.config['shoot_period'])
         self.shoot_timer = self.shoot_period   
         
@@ -235,7 +233,14 @@ class Snowman(Enemy):
         if self.shoot_timer > 0 : return []
         self.shoot_timer += self.shoot_period
         return Snowman_ball(self.pos, self.player)
+
+class Snowman1(Snowman):
+    def __init__(self, pos, player):
+        super().__init__('Snowman1', pos, player)
         
+class Snowman2(Snowman):
+    def __init__(self, pos, player):
+        super().__init__('Snowman2', pos, player)     
 class Rick(Enemy):
     def __init__(self, name, pos, player):
         super().__init__(name, pos, player)

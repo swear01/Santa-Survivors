@@ -737,7 +737,10 @@ class Upgrade():
                         if  buff.name == self.options[self.selected].option_name:
                             buff.level += 1
                             return 0
-                    self.player.buffs += [available_buffs[self.options[self.selected].option_name]()]
+
+                    self.player.buffs += [available_buffs[self.options[self.selected].option_name]]
+                self.player.calc_stats() #make buffs work
+
         else:
             self.backend.upgrade_menu = False
            

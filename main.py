@@ -41,7 +41,7 @@ pygame.mixer.music.set_volume(0.4)
 def gaming(selected_character):
     time_elapsed = 0
     bullets, enemies, enemy_bullets, drops = pygame.sprite.Group(), pygame.sprite.Group(), pygame.sprite.Group(), pygame.sprite.Group()
-    player = Player(selected_character,(width/2, height/2), backend, weapon_list, enemies)
+    player = Player(selected_character,(width/2, height/2), backend, weapon_list, enemies, enemy_bullets)
     players = pygame.sprite.Group(player)
     r,g,b = 128,128,128 #for game over animation
 

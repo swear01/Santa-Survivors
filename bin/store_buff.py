@@ -5,7 +5,7 @@ from configparser import ConfigParser, ExtendedInterpolation
 import pygame
 
 buff_config = ConfigParser(interpolation=ExtendedInterpolation())
-buff_config.read('./data/config/buff.ini')
+buff_config.read('./data/config/store_buff.ini')
 
 class Buff:
     def __init__(self, buff_name):
@@ -55,6 +55,20 @@ class Wise(Buff):
 class Strong(Buff):
     def __init__(self):
         super().__init__('Strong')
+        
+def read_level(save_path = './save/player1.ini') -> dict:
+    user_data = ConfigParser(interpolation=ExtendedInterpolation())
+    user_data.read(save_path)
+    return user_data['Store_upgrade']
+
+def save_level(store_levels:dict, save_path = './save/player1.ini'):
+    user_data = ConfigParser(interpolation=ExtendedInterpolation())
+    user_data.read(save_path)
+    user_data['Store_upgrade'] = store_levels
+    with open(save_path,'w+') as f:
+        ConfigParser.write(f)
+    
+    return buff_config.items('Store_upgrade')
 
 available_buffs:dict[str,Buff] = {'Fortune':Fortune, 'Muscle':Muscle, 'Nike':Nike,
                                   'Warming':Warming, 'Hell':Hell, 'WD_40':WD_40, 'Wise':Wise, 'Strong':Strong}
