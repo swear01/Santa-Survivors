@@ -241,14 +241,14 @@ class Sled(Weapon):
         self.speed = loads(config['speed'])
         self.bullet_amount = loads(config['bullet_amount'])
         self.shoot_period = loads(config['shoot_period'])
-        self.shoot_timer = self.shoot_period
+        self.shoot_timer = 0
         self.bullets = pygame.sprite.Group()
 
     def update(self, dt):
         self.shoot_timer -= dt
         if len(self.bullets) == self.bullet_amount[self.level]: return []
         if self.shoot_timer >= 0 : return []
-        self.shoot_timer = self.shoot_period
+        self.shoot_timer = self.calc_shoot_period()
         sled_pos = array((-80, self.player.pos[1]))
         sled_vec = array((self.speed[self.level], 0))
         sled_bullet = Sled_bullet(self.image, sled_pos, sled_vec, self.atk[self.level])
