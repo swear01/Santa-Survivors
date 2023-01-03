@@ -62,11 +62,6 @@ def gaming(selected_character):
                     backend.game_over = pause.choose(event)
                 if backend.upgrade_menu:
                     upgrade.choose(event)
-                    # for weapon in player.weapons:
-                    #     print(weapon.name,weapon.level)
-                    # for buff in player.buffs:
-                    #     print(buff.name,buff.level)
-
 
         dt = clock.tick(FPS)/1000
 
@@ -198,6 +193,8 @@ while True:
         next_stage,backend.main_page = main_page(screen,manager,clock)
     elif backend.tutorial:
         next_stage,backend.tutorial = tutorial(screen,manager,clock)
+    elif backend.shop:
+        next_stage,buff_list,backend.shop = shop(screen,manager,clock,100)
     elif backend.select_character:
         next_stage, backend.selected_character, backend.select_character = select_role(screen,manager,clock)
     elif backend.start_game:
@@ -209,6 +206,8 @@ while True:
         backend.main_page = True
     elif next_stage == 'tutorial':
         backend.tutorial = True
+    elif next_stage == 'shop':
+        backend.shop = True
     elif next_stage == 'select_character':
         backend.select_character = True
     elif next_stage == 'start':

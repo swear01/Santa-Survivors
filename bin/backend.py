@@ -6,6 +6,7 @@ class Backend:
         self.selected_character = ''
         self.start_game = False
         self.tutorial = False
+        self.shop = False
         self.paused = False
         self.upgrade = False
         self.upgrade_menu = False

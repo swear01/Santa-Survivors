@@ -9,8 +9,10 @@ config = ConfigParser(interpolation=ExtendedInterpolation())
 config.read('./data/config/huds.ini')
 
 class Weapon_icon():
-    def __init__(self,screen,weapon,number):
+    def __init__(self,screen,manager,player,weapon,number):
         self.screen = screen
+        self.player = player
+        self.number = number
         self.x = [int(x) for x in config['weapon_icon']['x'].split('\n')][number]
         self.y = int(config['weapon_icon']['y'])
         self.width = int(config['weapon_icon']['width'])
@@ -21,13 +23,30 @@ class Weapon_icon():
         else:
             self.image = pygame.image.load(config['weapon_icon']['img_dir']).convert_alpha()
             self.image = pygame.transform.scale(self.image,(self.width,self.height))
-        
+        if number <= len(player.weapons)-1:
+            self.level = player.weapons[number].level
+            self.level_text = pygame_gui.elements.UILabel(relative_rect=pygame.Rect(self.x-10,self.y+27,50,30),
+                text = f'lv.{self.level+1}', manager=manager,object_id=ObjectID('#level_text'))
+
     def show(self,screen):
         screen.blit(self.image,(self.x,self.y))
+    
+    def update(self):
+        if self.level_text.text[3:] != 'MAX':
+            if int(self.level_text.text[3:])-1 < self.player.weapons[self.number].level:
+                self.level_text.set_text(f'lv.{int(self.player.weapons[self.number].level) + 1}')
+            if int(self.level_text.text[3:]) == self.player.weapons[self.number].max_level+1:
+                self.level_text.set_text(f'lv.MAX')
+
+    def kill(self):
+        self.level_text.kill()
+        
 
 class Buff_icon():
-    def __init__(self,screen,buff,number):
+    def __init__(self,screen,manager,player,buff,number):
         self.screen = screen
+        self.player = player
+        self.number = number
         self.x = [int(x) for x in config['buff_icon']['x'].split('\n')][number]
         self.y = int(config['buff_icon']['y'])
         self.width = int(config['buff_icon']['width'])
@@ -38,9 +57,15 @@ class Buff_icon():
         else:
             self.image = pygame.image.load(config['buff_icon']['img_dir']).convert_alpha()
             self.image = pygame.transform.scale(self.image,(self.width,self.height))
-        
+        if number <= len(player.buffs)-1:
+            self.level = player.buffs[number].level
+            self.level_text = pygame_gui.elements.UILabel(relative_rect=pygame.Rect(self.x-5,self.y+27,40,30),
+                text = f'lv.{self.level+1}', manager=manager,object_id=ObjectID('#level_text'))
     def show(self,screen):
         screen.blit(self.image,(self.x,self.y))
+
+    def kill(self):
+        self.level_text.kill()
 
 class Huds:
     def __init__(self, screen, manager, width, height, player):
@@ -78,10 +103,11 @@ class Huds:
             anchors={'right':'right','top_target':self.xp_bar}, text = 'golds:0', manager=manager,
             object_id=ObjectID('#guide_text')
             )
-        self.weapon_icons = [Weapon_icon(screen,'weapon_icon',0), Weapon_icon(screen,'weapon_icon',1), Weapon_icon(screen,'weapon_icon',2), Weapon_icon(screen,'weapon_icon',3)]
-        self.buff_icons = [Buff_icon(screen,'buff_icon',0), Buff_icon(screen,'buff_icon',1), Buff_icon(screen,'buff_icon',2), Buff_icon(screen,'buff_icon',3)]
+        self.weapon_icons = [Weapon_icon(screen,manager,player,'weapon_icon',0), Weapon_icon(screen,manager,player,'weapon_icon',1), Weapon_icon(screen,manager,player,'weapon_icon',2), Weapon_icon(screen,manager,player,'weapon_icon',3)]
+        self.buff_icons = [Buff_icon(screen,manager,player,'buff_icon',0), Buff_icon(screen,manager,player,'buff_icon',1), Buff_icon(screen,manager,player,'buff_icon',2), Buff_icon(screen,manager,player,'buff_icon',3)]
         self.weapons = 0
         self.buffs = 0
+        self.weapon_icons[0].level_text.kill()
         #self.timer.set_text_scale(1)
         
         
@@ -90,11 +116,14 @@ class Huds:
         self.kill_counter.set_text(f'kills:{kill_counts}')
         self.gold_counter.set_text(f'golds:{gold_counts}')
         if self.weapons < len(self.player.weapons):
-            self.weapon_icons[self.weapons] = Weapon_icon(self.screen,self.player.weapons[self.weapons],self.weapons)
+            self.weapon_icons[self.weapons] = Weapon_icon(self.screen,self.manager,self.player,self.player.weapons[self.weapons],self.weapons)
             self.weapons += 1
         if self.buffs < len(self.player.buffs):
-            self.buff_icons[self.buffs] = Buff_icon(self.screen,self.player.buffs[self.buffs],self.buffs)
+            self.buff_icons[self.buffs] = Buff_icon(self.screen,self.manager,self.player,self.player.buffs[self.buffs],self.buffs)
             self.buffs += 1
+        for i in range(len(self.player.weapons)):
+            self.weapon_icons[i].update()
+
 
     def kill(self):
         self.timer.kill()
@@ -102,7 +131,11 @@ class Huds:
         self.xp_bar.kill()
         self.kill_counter.kill()
         self.gold_counter.kill()
-       
+        for i in range(len(self.player.weapons)):
+            self.weapon_icons[i].level_text.kill()
+        for i in range(len(self.player.buffs)):
+            self.buff_icons[i].level_text.kill()
+
     def draw(self,screen):
             for icon in self.weapon_icons:
                 icon.show(screen)
