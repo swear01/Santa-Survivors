@@ -118,7 +118,7 @@ def gaming(selected_character):
                     # if type(bullet) == Deer_antler_bullet or type(bullet) == Igloo_shelter :
                     #     enemy.avoid()
 
-            for enemy1, enemy2s in pygame.sprite.groupcollide(enemies,enemies, False, False, pygame.sprite.collide_circle_ratio(0.5)).items():
+            for enemy1, enemy2s in pygame.sprite.groupcollide(enemies,enemies, False, False, pygame.sprite.collide_circle_ratio(0.44)).items():
                 for enemy2 in enemy2s:
                     if enemy1 == enemy2 : continue
                     drct = enemy1.pos - enemy2.pos
