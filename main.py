@@ -195,7 +195,7 @@ while True:
     elif backend.tutorial:
         next_stage,backend.tutorial = tutorial(screen,manager,clock)
     elif backend.shop:
-        next_stage,backend.shop = shop(screen,manager,clock,100)
+        next_stage,backend.shop = shop(screen,manager,clock,40)
         
     elif backend.select_character:
         next_stage, backend.selected_character, backend.select_character = select_role(screen,manager,clock)
