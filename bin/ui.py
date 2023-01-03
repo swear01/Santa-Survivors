@@ -414,9 +414,9 @@ def main_page(screen,manager,clock):
                 exit()
             elif event.type == pygame.KEYDOWN:
                 # select 
-                if event.key == K_UP or event.key == K_w and selected>0:
+                if event.key == K_w and selected>0:
                     selected-=1
-                if event.key == K_DOWN or event.key == K_s and selected<len(options)-1:
+                if event.key == K_s and selected<len(options)-1:
                     selected+=1
 
                 # next stage
@@ -512,13 +512,13 @@ def shop(screen,manager,clock,money):
                 exit()
             elif event.type == pygame.KEYDOWN:
                 # select 
-                if event.key == K_UP or event.key == K_w and selected-4>=0:
+                if event.key == K_w and selected-4>=0:
                     selected-=4
-                if event.key == K_DOWN or event.key == K_s and selected+4<len(options)-1:
+                if event.key == K_s and selected+4<len(options)-1:
                     selected+=4
-                if event.key == K_LEFT or event.key == K_a and selected>0:
+                if event.key == K_a and selected>0:
                     selected-=1
-                if event.key == K_RIGHT or event.key == K_d and selected<len(options)-1:
+                if event.key == K_d and selected<len(options)-1:
                     selected+=1
                 # next stage
                 if event.key == K_RETURN:
@@ -643,9 +643,9 @@ def game_over(screen,manager,clock,enemy_killed,golds):
                 exit()
             elif event.type == pygame.KEYDOWN:
                 # select 
-                if event.key == K_UP or event.key == K_w and selected>0:
+                if event.key == K_w and selected>0:
                     selected-=1
-                if event.key == K_DOWN or event.key == K_s and selected<len(options)-1:
+                if event.key == K_s and selected<len(options)-1:
                     selected+=1
 
                 # next stage
@@ -675,9 +675,9 @@ class Pause():
         self.options = [self.reusme,self.quit]
 
     def choose(self,event):
-        if event.key == K_UP or event.key == K_w and self.selected>0:
+        if event.key == K_w and self.selected>0:
             self.selected-=1
-        if event.key == K_DOWN or event.key == K_s and self.selected<len(self.options)-1:
+        if event.key == K_s and self.selected<len(self.options)-1:
             self.selected+=1
         if event.key == K_RETURN:
             for option in self.options:
@@ -719,9 +719,9 @@ class Upgrade():
 
     def choose(self,event):
         if not self.maxlevel:
-            if event.key == K_UP or event.key == K_w and self.selected>0:
+            if event.key == K_w and self.selected>0:
                 self.selected-=1
-            if event.key == K_DOWN or event.key == K_s and self.selected<len(self.options)-1:
+            if event.key == K_s and self.selected<len(self.options)-1:
                 self.selected+=1
             if event.key == K_RETURN:
                 for option in self.options:
